@@ -140,13 +140,16 @@ export function MediaPicker({ open, onOpenChange, onSelect, multiple, defaultTab
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploading(true);
+    let uploaded = 0;
     try {
       for (const file of Array.from(files)) {
         try {
           const result = await uploadMedia(file);
           const fullItem = await getMedia(result.mediaId);
+          uploaded++;
           if (!multiple) {
             setPendingUpload(fullItem);
+            toast.success("Image uploaded");
             setUploading(false);
             return;
           }
@@ -155,6 +158,7 @@ export function MediaPicker({ open, onOpenChange, onSelect, multiple, defaultTab
         }
       }
       if (multiple) {
+        toast.success(`${uploaded} image${uploaded === 1 ? "" : "s"} uploaded`);
         fetchMedia({ page: 1, limit: PAGE_LIMIT, search: search || undefined });
       }
     } finally {
