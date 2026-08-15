@@ -145,7 +145,7 @@ export default function StoreSetupPage() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+977 9800000000"
+                placeholder="+977 98xxxxxxx"
                 value={form.phone}
                 onChange={update("phone")}
               />
@@ -155,7 +155,7 @@ export default function StoreSetupPage() {
             <FieldLabel htmlFor="address">Address</FieldLabel>
             <Input
               id="address"
-              placeholder="Thamel, Kathmandu, Nepal"
+              placeholder="08 New Rd, Pokhara, Nepal"
               value={form.address}
               onChange={update("address")}
             />

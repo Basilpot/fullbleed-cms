@@ -153,7 +153,7 @@ export default function BrandPage() {
               <Input
                 value={values.experience}
                 onChange={(e) => set("experience", e.target.value)}
-                placeholder="Adventure starts here"
+                placeholder="Custom furniture, cut to your room."
               />
             </Field>
           </div>
@@ -277,7 +277,7 @@ export default function BrandPage() {
                 fontFamily: `"${getFont(fonts.primary || DEFAULT_FONTS.primary)?.family}", sans-serif`,
               }}
             >
-              Adventure starts here — primary body font.
+              Custom furniture, cut to your room — primary body font.
             </p>
             <p
               className="mt-2 text-2xl font-bold"
@@ -285,7 +285,7 @@ export default function BrandPage() {
                 fontFamily: `"${getFont(fonts.secondary || DEFAULT_FONTS.secondary)?.family}", sans-serif`,
               }}
             >
-              Summit Experiences — secondary heading font.
+              Ash & Moss — secondary heading font.
             </p>
           </div>
         </Section>

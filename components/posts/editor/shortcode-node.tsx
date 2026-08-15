@@ -3,9 +3,9 @@
 import type { NodeViewProps } from "@tiptap/react";
 import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
-import { Mountain, List, FileText, Trash2 } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 
-type ShortcodeKind = "trip" | "featured-trips" | "post";
+type ShortcodeKind = "post";
 
 interface ShortcodeAttrs {
   kind: ShortcodeKind;
@@ -41,25 +41,16 @@ declare module "@tiptap/react" {
 }
 
 function shortcodeText(attrs: ShortcodeAttrs): string {
-  switch (attrs.kind) {
-    case "trip":
-      return `[trip slug="${attrs.slug}"]`;
-    case "post":
-      return `[post slug="${attrs.slug}"]`;
-    case "featured-trips":
-      return `[featured-trips tag="${attrs.tag}" count="${attrs.count}"]`;
-  }
+  return `[post slug="${attrs.slug}"]`;
 }
 
-const KIND_META: Record<ShortcodeKind, { label: string; hint: string; icon: typeof Mountain }> = {
-  trip: { label: "Trip Embed", hint: "Slug of the trek to embed", icon: Mountain },
-  "featured-trips": { label: "Featured Trips", hint: "Featured tag + count", icon: List },
+const KIND_META: Record<ShortcodeKind, { label: string; hint: string; icon: typeof FileText }> = {
   post: { label: "Post Embed", hint: "Slug of the blog post to embed", icon: FileText },
 };
 
 function ShortcodeNodeView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
   const attrs = node.attrs as ShortcodeAttrs;
-  const meta = KIND_META[attrs.kind] ?? KIND_META.trip;
+  const meta = KIND_META[attrs.kind] ?? KIND_META.post;
   const Icon = meta.icon;
 
   return (
@@ -85,43 +76,16 @@ function ShortcodeNodeView({ node, updateAttributes, deleteNode, selected }: Nod
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-3">
-        {(attrs.kind === "trip" || attrs.kind === "post") && (
-          <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            slug
-            <input
-              type="text"
-              value={attrs.slug}
-              onChange={(e) => updateAttributes({ slug: e.target.value })}
-              placeholder={attrs.kind === "trip" ? "everest-base-camp-trek" : "post-slug"}
-              className="h-7 w-56 rounded-md border bg-background px-2 text-xs text-foreground"
-            />
-          </label>
-        )}
-        {attrs.kind === "featured-trips" && (
-          <>
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              tag
-              <input
-                type="text"
-                value={attrs.tag}
-                onChange={(e) => updateAttributes({ tag: e.target.value })}
-                placeholder="top-rated"
-                className="h-7 w-40 rounded-md border bg-background px-2 text-xs text-foreground"
-              />
-            </label>
-            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              count
-              <input
-                type="number"
-                min={1}
-                max={12}
-                value={attrs.count}
-                onChange={(e) => updateAttributes({ count: Number(e.target.value) || 4 })}
-                className="h-7 w-14 rounded-md border bg-background px-2 text-xs text-foreground"
-              />
-            </label>
-          </>
-        )}
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          slug
+          <input
+            type="text"
+            value={attrs.slug}
+            onChange={(e) => updateAttributes({ slug: e.target.value })}
+            placeholder="post-slug"
+            className="h-7 w-56 rounded-md border bg-background px-2 text-xs text-foreground"
+          />
+        </label>
       </div>
 
       <div className="mt-2 font-mono text-xs text-muted-foreground">{shortcodeText(attrs)}</div>
@@ -139,7 +103,7 @@ export const ShortcodeExtension = Node.create({
 
   addAttributes() {
     return {
-      kind: { default: "trip" },
+      kind: { default: "post" },
       slug: { default: "" },
       tag: { default: "" },
       count: { default: 4 },
@@ -153,7 +117,7 @@ export const ShortcodeExtension = Node.create({
         getAttrs: (el) => {
           const node = el as HTMLElement;
           return {
-            kind: (node.getAttribute("data-shortcode") as ShortcodeKind) || "trip",
+            kind: (node.getAttribute("data-shortcode") as ShortcodeKind) || "post",
             slug: node.getAttribute("data-slug") || "",
             tag: node.getAttribute("data-tag") || "",
             count: Number(node.getAttribute("data-count")) || 4,

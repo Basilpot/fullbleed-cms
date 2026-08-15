@@ -15,7 +15,6 @@ import {
   Code,
   Minus,
   Table2,
-  Mountain,
   FileText,
 } from "lucide-react";
 import type { Editor } from "@tiptap/core";
@@ -126,36 +125,6 @@ const defaultCommands: SlashCommandItem[] = [
     aliases: ["grid", "spreadsheet"],
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-    },
-  },
-  {
-    id: "tripShortcode",
-    title: "Trip Embed",
-    description: "Embed a trek card by slug",
-    icon: Mountain,
-    aliases: ["trip", "trek"],
-    command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertShortcode({ kind: "trip", slug: "everest-base-camp-trek" })
-        .run();
-    },
-  },
-  {
-    id: "featuredShortcode",
-    title: "Featured Trips",
-    description: "Embed a grid of treks by featured tag",
-    icon: List,
-    aliases: ["featured", "top-rated"],
-    command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertShortcode({ kind: "featured-trips", tag: "top-rated", count: 4 })
-        .run();
     },
   },
   {

@@ -1,4 +1,4 @@
-# Admin dashboard (travel-dashboard)
+# Admin dashboard (Ash & Moss admin)
 
 Next.js 16 App Router, React 19, Tailwind CSS 4, TypeScript, shadcn/ui (new-york, `@/*` → package root).
 
@@ -13,5 +13,5 @@ pnpm lint             # eslint (next/core-web-vitals + typescript); no-explicit-
 - Sidebar menu is `components/app-sidebar.tsx` (`navGroups`, `QUICK_ACTIONS`, `SECONDARY_NAV`) — add new pages there.
 - API client pattern: plain functions in `app/actions/index.ts`.
 - `/team` = marketing team members CRUD, NOT staff accounts. There is no billing/plans page yet (SaaS feature pending).
-- `travel-dashboard/DESIGN.md` documents the Vercel-inspired design system — treat as authoritative for UI work.
+- `DESIGN.md` documents the Vercel-inspired design system — treat as authoritative for UI work.
 - MCP: `next-devtools` via `.mcp.json`.

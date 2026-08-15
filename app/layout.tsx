@@ -4,7 +4,7 @@ import "./globals.css";
 import { livvic } from "@/lib/font";
 
 export const metadata: Metadata = {
-  title: "Ash and Moss - Hello inquiries. Bye-bye spreadsheet chaos",
+  title: "Ash & Moss — Admin",
   icons: "/icon.svg",
 };
 

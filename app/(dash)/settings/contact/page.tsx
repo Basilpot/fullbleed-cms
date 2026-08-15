@@ -106,7 +106,7 @@ export default function ContactPage() {
             <Input
               value={values.whatsAppNumber}
               onChange={(e) => set({ whatsAppNumber: e.target.value })}
-              placeholder="+977 98xxxxxxxx"
+              placeholder="+977 9841328947"
             />
           </Field>
           <Field label="Phone numbers">
@@ -122,7 +122,7 @@ export default function ContactPage() {
                 <Input
                   value={p.value}
                   onChange={(e) => setPhone(i, { value: e.target.value })}
-                  placeholder="+977 1 4xxxxxx"
+                  placeholder="+977 61456078"
                 />
                 <RemoveBtn
                   onClick={() =>

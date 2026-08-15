@@ -1,7 +1,7 @@
 ---
 version: 2.0
-name: Travel-Dashboard-Design
-description: The admin dashboard design system — an enlarged, light-only interface set in Livvic, on an ash-white canvas with a hunter-green primary (the "Ash and Moss" palette). Design tokens are ported from the Walkthrough Nepal CMS design reference (cms.walkthroughnepal.com) and defined as CSS custom properties in app/globals.css. This document is the authoritative reference for UI work in travel-dashboard.
+name: Ash-Moss-Admin-Design
+description: The admin dashboard design system — an enlarged, light-only interface set in Livvic, on an ash-white canvas with a hunter-green primary (the "Ash and Moss" palette). Design tokens are defined as CSS custom properties in app/globals.css. This document is the authoritative reference for UI work in the Ash & Moss admin.
 
 colors:
   primary: "#3a5a40"
