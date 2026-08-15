@@ -5,7 +5,7 @@ import { livvic } from "@/lib/font";
 
 export const metadata: Metadata = {
   title: "Ash and Moss - Hello inquiries. Bye-bye spreadsheet chaos",
-  icons: "/dashboard-favicon.svg",
+  icons: "/icon.svg",
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
