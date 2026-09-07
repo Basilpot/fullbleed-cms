@@ -176,7 +176,13 @@ export default function OrderList() {
     {
       header: "Order #",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.orderNumber}</span>
+        <button
+          type="button"
+          onClick={() => openViewDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
+          {row.original.orderNumber}
+        </button>
       ),
     },
     {

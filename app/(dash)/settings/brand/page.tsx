@@ -138,7 +138,7 @@ export default function BrandPage() {
             <Input
               value={values.name}
               onChange={(e) => set("name", e.target.value)}
-              placeholder="Ash and Moss"
+              placeholder="Tasche"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
@@ -285,7 +285,7 @@ export default function BrandPage() {
                 fontFamily: `"${getFont(fonts.secondary || DEFAULT_FONTS.secondary)?.family}", sans-serif`,
               }}
             >
-              Ash & Moss — secondary heading font.
+              Tasche — secondary heading font.
             </p>
           </div>
         </Section>

@@ -1,10 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
+import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { ArrowRight, Trash2, Plus } from "lucide-react";
+import { Edit3, Plus, Trash2Icon } from "lucide-react";
 
 interface Redirect {
   id: string;
@@ -13,7 +26,7 @@ interface Redirect {
   permanent: boolean;
 }
 
-const API_BASE = `/api/redirect`;
+const API_BASE = `/api/redirects`;
 
 function sanitizePath(value: string): string {
   return value.replace(/[^a-zA-Z0-9\-/]/g, "");
@@ -44,20 +57,44 @@ function wouldCreateCycle(
 }
 
 export default function RedirectsManager() {
+  const searchParams = useSearchParams();
   const [redirects, setRedirects] = useState<Redirect[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Redirect | null>(null);
 
   const fetchRedirects = async () => {
-    const res = await fetch(API_BASE);
-    const json = await res.json();
-    setRedirects(json.data ?? []);
+    setLoading(true);
+    try {
+      const res = await fetch(API_BASE);
+      const json = await res.json();
+      setRedirects(json.data ?? []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchRedirects();
   }, []);
+
+  const openCreate = () => {
+    setEditingId(null);
+    setFrom("");
+    setTo("");
+    setDialogOpen(true);
+  };
+
+  const openEdit = (r: Redirect) => {
+    setEditingId(r.id);
+    setFrom(r.from);
+    setTo(r.to);
+    setDialogOpen(true);
+  };
 
   const handleSave = async () => {
     const trimmedFrom = from.trim();
@@ -78,7 +115,7 @@ export default function RedirectsManager() {
       return;
     }
 
-    setLoading(true);
+    setSaving(true);
     try {
       const res = await fetch(API_BASE, {
         method: "PUT",
@@ -92,104 +129,171 @@ export default function RedirectsManager() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       toast.success(json.message);
-      setFrom("");
-      setTo("");
+      setDialogOpen(false);
       await fetchRedirects();
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
     try {
       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       toast.success(json.message);
       setRedirects((prev) => prev.filter((r) => r.id !== id));
+      setPendingDelete(null);
     } catch (err: any) {
       toast.error(err.message ?? "Something went wrong");
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-start justify-center  px-4">
-      <div className="w-full  space-y-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-zinc-950 text-3xl font-bold tracking-tight">
-            Redirects
-          </h1>
-          <p className="text-zinc-500  mt-1">
-            Add or update URL redirects. Redirects are automatically apllied
-            when the page or activity slug is changed. If something needs manual
-            intervention that can be changed manually here.
-          </p>
-        </div>
+  const search = (searchParams.get("search") ?? "").trim().toLowerCase();
+  const filteredRedirects = useMemo(
+    () =>
+      search
+        ? redirects.filter(
+            (r) =>
+              r.from.toLowerCase().includes(search) ||
+              r.to.toLowerCase().includes(search),
+          )
+        : redirects,
+    [redirects, search],
+  );
 
-        {/* Input Row */}
-        <div className="flex gap-3 items-center">
-          <Input
-            placeholder="/from-path"
-            value={from}
-            onChange={(e) => setFrom(sanitizePath(e.target.value))}
-            className="h-11 flex-1 text-sm"
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          />
-          <ArrowRight className="shrink-0" size={18} />
-          <Input
-            placeholder="/to-path"
-            value={to}
-            onChange={(e) => setTo(sanitizePath(e.target.value))}
-            className="h-11 flex-1 text-sm"
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          />
+  const columns: ColumnDef<Redirect, unknown>[] = [
+    {
+      id: "sn",
+      header: "S.N",
+      cell: ({ row }) => row.index + 1,
+    },
+    {
+      accessorKey: "from",
+      header: "From",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">{row.original.from}</span>
+      ),
+    },
+    {
+      accessorKey: "to",
+      header: "To",
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">{row.original.to}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex gap-4">
+          <Button size="lg" onClick={() => openEdit(row.original)}>
+            <Edit3 size={12} /> Edit
+          </Button>
           <Button
-            onClick={handleSave}
-            disabled={loading}
-            className="h-11 px-5 shrink-0 font-medium rounded-xl"
+            size="lg"
+            variant="secondary"
+            onClick={() => setPendingDelete(row.original)}
           >
-            <Plus size={16} className="mr-1" />
-            Save
+            <Trash2Icon size={12} /> Delete
           </Button>
         </div>
+      ),
+    },
+  ];
 
-        {/* Divider */}
-        <div className="border-t  pt-2" />
-
-        {/* Redirect List */}
-        {redirects.length === 0 ? (
-          <div className="text-center py-16 text-zinc-400 text-sm">
-            No redirects yet. Add one above.
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {redirects.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center gap-3 px-2 py-3 group rounded-lg hover:bg-zinc-50 transition-colors"
-              >
-                <span className="text-zinc-700 text-sm truncate flex-1">
-                  {r.from}
-                </span>
-                <ArrowRight size={14} className="text-zinc-400 shrink-0" />
-                <span className="text-zinc-700 text-sm truncate flex-1">
-                  {r.to}
-                </span>
-                <button
-                  onClick={() => handleDelete(r.id)}
-                  className="shrink-0 ml-2 bg-zinc-950 hover:bg-zinc-700 text-white p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                  title="Delete redirect"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+  return (
+    <div>
+      <div className="mb-6">
+        <PageHeader
+          title="Redirects"
+          description="Add or update URL redirects. Redirects are automatically applied when a page or activity slug is changed. If something needs manual intervention that can be changed manually here."
+        >
+          <Button size="lg" onClick={openCreate}>
+            <Plus className="mr-1" size={16} />
+            Add Redirect
+          </Button>
+        </PageHeader>
       </div>
+
+      <DataTable
+        data={filteredRedirects}
+        columns={columns}
+        isLoading={loading}
+        searchPlaceholder="Search redirects…"
+        emptyMessage="No redirects yet. Add one above."
+      />
+
+      {/* Create / Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingId ? "Edit Redirect" : "Add Redirect"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="font-bold text-sm">From</Label>
+              <Input
+                value={from}
+                onChange={(e) => setFrom(sanitizePath(e.target.value))}
+                placeholder="/from-path"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-bold text-sm">To</Label>
+              <Input
+                value={to}
+                onChange={(e) => setTo(sanitizePath(e.target.value))}
+                placeholder="/to-path"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Redirect</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the redirect{" "}
+              <span className="font-mono">{pendingDelete?.from}</span> →
+              <span className="font-mono"> {pendingDelete?.to}</span>? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setPendingDelete(null)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={handleDelete} disabled={saving}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

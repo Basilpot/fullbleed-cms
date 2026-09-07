@@ -179,9 +179,9 @@ export default function MediaLibraryPage() {
               onChange={(e) => handleUpload(e.target.files)}
             />
             <Button
+              size="lg"
               onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="rounded-full bg-[#171717] text-white hover:bg-[#171717]/90 text-sm"
           >
             {uploading ? (
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -191,9 +191,9 @@ export default function MediaLibraryPage() {
             Upload
           </Button>
           <Button
-            variant="outline"
+            size="lg"
+            variant="secondary"
             onClick={() => setUrlDialogOpen(true)}
-            className="rounded-full border-[#ebebeb] text-[#171717] text-sm"
           >
             <LinkIcon className="h-4 w-4 mr-1" />
             Insert from URL
@@ -306,7 +306,6 @@ export default function MediaLibraryPage() {
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-full border-[#ebebeb] text-[#171717]"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -315,7 +314,6 @@ export default function MediaLibraryPage() {
                   size="sm"
                   disabled={page >= (pagination.totalPages)}
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-full border-[#ebebeb] text-[#171717]"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -355,7 +353,7 @@ export default function MediaLibraryPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full mt-2 rounded-full border-[#ebebeb] text-[#171717]"
+                    className="w-full mt-2"
                     onClick={() => setCropDialogOpen(true)}
                   >
                     <Crop className="h-3 w-3 mr-1" />
@@ -419,8 +417,8 @@ export default function MediaLibraryPage() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-full border-[#ebebeb] text-[#171717]">Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="rounded-full bg-[#171717] text-white hover:bg-[#171717]/90">
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
@@ -455,8 +453,8 @@ export default function MediaLibraryPage() {
             This will remove the file from disk and cannot be undone.
           </p>
           <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="rounded-full border-[#ebebeb] text-[#171717]">Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} className="rounded-full bg-[#ee0000] text-white hover:bg-[#ee0000]/90">Delete</Button>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

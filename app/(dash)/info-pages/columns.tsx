@@ -91,21 +91,28 @@ export const infoPagesColumns: ColumnDef<InfoPage>[] = [
     },
   },
   {
+    accessorKey: "title",
+    header: "Title",
+    cell: ({ row }) => {
+      return (
+        <Link
+          href={`/info-pages/edit?id=${row.original.id}`}
+          className="underline underline-offset-2"
+        >
+          {row.original.title.substring(0, 50) + "..."}
+        </Link>
+      );
+    },
+  },
+  {
     accessorKey: "slug",
-    header: "Slug",
+    header: "Slug/URL",
     cell: ({ row }) => {
       return (
         <span onClick={() => navigator.clipboard.writeText(row.getValue("slug"))}>
           {row.getValue("slug")}
         </span>
       );
-    },
-  },
-  {
-    accessorKey: "title",
-    header: "Title",
-    cell: ({ row }) => {
-      return <p>{row.original.title.substring(0, 50) + "..."}</p>;
     },
   },
   {

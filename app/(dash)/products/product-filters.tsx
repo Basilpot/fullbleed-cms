@@ -10,7 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const STATUS_TABS = ["all", "draft", "published"] as const;
+export const STATUS_PARAM: Record<(typeof STATUS_TABS)[number], string> = {
+  all: "all",
+  draft: "draft",
+  published: "published",
+};
 
 type Option = { id: string; name: string; slug: string };
 type CategoryNode = Option & { children?: CategoryNode[] };
@@ -56,10 +64,14 @@ export function ProductFilters() {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const [open, setOpen] = useState(false);
   const [categories, setCategories] = useState<{ value: string; label: string }[]>([]);
   const [brands, setBrands] = useState<Option[]>([]);
 
+  const status: (typeof STATUS_TABS)[number] = STATUS_TABS.includes(
+    searchParams.get("status") as (typeof STATUS_TABS)[number],
+  )
+    ? (searchParams.get("status") as (typeof STATUS_TABS)[number])
+    : "all";
   const category = params.get("category") ?? "";
   const brand = params.get("brand") ?? "";
   const sort = sortFromParams(params);
@@ -100,94 +112,73 @@ export function ProductFilters() {
     router.push(`?${next.toString()}`, { scroll: false });
   };
 
-  const clearAll = () => {
+  const setStatus = (tab: (typeof STATUS_TABS)[number]) => {
     const next = new URLSearchParams(window.location.search);
-    for (const key of ["category", "brand", "sort", "order"]) {
-      next.delete(key);
-    }
+    if (tab === "all") next.delete("status");
+    else next.set("status", tab);
     next.set("page", "1");
     router.push(`?${next.toString()}`, { scroll: false });
   };
 
-  const activeCount = [category, brand, sort !== "newest" ? "sort" : ""].filter(Boolean).length;
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setOpen((o) => !o)}
-          className="gap-2"
-        >
-          <Filter className="size-4" />
-          Filters
-          {activeCount > 0 && (
-            <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-              {activeCount}
-            </span>
-          )}
-        </Button>
-        <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="h-9 w-48">
-            <SlidersHorizontal className="size-4 text-muted-foreground" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORTS.map((s) => (
-              <SelectItem key={s.value} value={s.value}>
-                {s.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-1">
+        {STATUS_TABS.map((tab) => (
+          <Button
+            key={tab}
+            type="button"
+            variant="ghost"
+            onClick={() => setStatus(tab)}
+            className={cn(
+              "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+              status === tab
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </Button>
+        ))}
       </div>
-
-      {open && (
-        <div className="mb-4 flex flex-wrap items-end gap-4 rounded-md border p-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Category</label>
-            <Select value={category} onValueChange={(v) => setParam("category", v === "all" ? "" : v)}>
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Brand</label>
-            <Select value={brand} onValueChange={(v) => setParam("brand", v === "all" ? "" : v)}>
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="All brands" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All brands</SelectItem>
-                {brands.map((b) => (
-                  <SelectItem key={b.id} value={b.slug}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {activeCount > 0 && (
-            <Button type="button" variant="ghost" size="sm" onClick={clearAll} className="gap-1">
-              <X className="size-4" />
-              Clear
-            </Button>
-          )}
-        </div>
-      )}
+      <Select value={category} onValueChange={(v) => setParam("category", v === "all" ? "" : v)}>
+        <SelectTrigger className="h-9 w-44">
+          <SelectValue placeholder="All categories" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All categories</SelectItem>
+          {categories.map((c) => (
+            <SelectItem key={c.value} value={c.value}>
+              {c.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={brand} onValueChange={(v) => setParam("brand", v === "all" ? "" : v)}>
+        <SelectTrigger className="h-9 w-44">
+          <SelectValue placeholder="All brands" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All brands</SelectItem>
+          {brands.map((b) => (
+            <SelectItem key={b.id} value={b.slug}>
+              {b.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={sort} onValueChange={setSort}>
+        <SelectTrigger className="h-9 w-44">
+          <SlidersHorizontal className="size-4 text-muted-foreground" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SORTS.map((s) => (
+            <SelectItem key={s.value} value={s.value}>
+              {s.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

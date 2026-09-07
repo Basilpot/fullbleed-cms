@@ -111,45 +111,6 @@ export default function InfoPages() {
             </Button>
           </Link>
         </div>
-
-        <div className="flex justify-between">
-          {/* Status filter */}
-          <div className="py-4 flex items-center gap-2">
-            {["all", "published", "draft"].map((s) => (
-              <Button
-                key={s}
-                onClick={() => handleStatusChange(s)}
-                variant={"secondary"}
-                className={cn(
-                  s === status
-                    ? "bg-primary text-primary-foreground hover:text-black! hover:bg-primary/80!"
-                    : "cursor-pointer hover:text-black!",
-                )}
-              >
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </Button>
-            ))}
-          </div>
-
-          {/* Category filter */}
-          <div className="flex items-center gap-2">
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.categoryName ?? cat.categoryHandle}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       </div>
 
       <div className="max-w-full">
@@ -158,6 +119,41 @@ export default function InfoPages() {
           data={infoPages}
           pagination={pagination}
           searchPlaceholder="Search info pages…"
+          toolbar={
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1">
+                {["all", "published", "draft"].map((s) => (
+                  <Button
+                    key={s}
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleStatusChange(s)}
+                    className={cn(
+                      "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                      s === status
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Button>
+                ))}
+              </div>
+              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="h-9 w-44">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.categoryName ?? cat.categoryHandle}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          }
         />
       </div>
     </div>

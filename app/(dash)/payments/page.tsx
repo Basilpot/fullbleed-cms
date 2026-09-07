@@ -93,7 +93,13 @@ export default function PaymentList() {
     {
       header: "Order #",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.order?.orderNumber || "-"}</span>
+        <button
+          type="button"
+          onClick={() => openViewDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
+          {row.original.order?.orderNumber || "-"}
+        </button>
       ),
     },
     {

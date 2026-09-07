@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
 import { formatStatus } from "@/components/atoms/status-badge";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function ProductPreviewContent() {
@@ -50,8 +50,10 @@ function ProductPreviewContent() {
     return (
       <div className="py-32 text-center">
         <p className="text-red-500">No product provided</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link href="/products">Back to Products</Link>
+        <Button asChild variant="link" className="mt-4">
+          <Link href="/products">
+            <ChevronLeft className="mr-1 h-4 w-4" /> Back to Products
+          </Link>
         </Button>
       </div>
     );
@@ -69,8 +71,10 @@ function ProductPreviewContent() {
     return (
       <div className="py-32 text-center">
         <p className="text-red-500">{error || "Product not found"}</p>
-        <Button asChild variant="outline" className="mt-4">
-          <Link href="/products">Back to Products</Link>
+        <Button asChild variant="link" className="mt-4">
+          <Link href="/products">
+            <ChevronLeft className="mr-1 h-4 w-4" /> Back to Products
+          </Link>
         </Button>
       </div>
     );
@@ -87,9 +91,9 @@ function ProductPreviewContent() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-4 flex items-center justify-between">
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="link" size="sm">
           <Link href="/products">
-            <ArrowLeft className="mr-1 h-4 w-4" /> Back to Products
+            <ChevronLeft className="mr-1 h-4 w-4" /> Back to Products
           </Link>
         </Button>
         <Badge

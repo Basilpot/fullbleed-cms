@@ -157,10 +157,16 @@ export default function Brands() {
     {
       header: "Name",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.name}</span>
+        <button
+          type="button"
+          onClick={() => openEditDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
+          {row.original.name}
+        </button>
       ),
     },
-    { accessorKey: "slug", header: "Slug" },
+    { accessorKey: "slug", header: "Slug/URL" },
     {
       header: "Featured",
       cell: ({ row }) => (row.original.isFeatured ? "Yes" : "No"),

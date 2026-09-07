@@ -187,7 +187,13 @@ export default function Testimonials() {
       id: "author",
       header: "Author",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.author}</span>
+        <button
+          type="button"
+          onClick={() => openEditDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
+          {row.original.author}
+        </button>
       ),
     },
     {

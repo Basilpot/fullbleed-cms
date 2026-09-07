@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +48,7 @@ export default function InfoPageCategories() {
   const [pagination, setPagination] = useState<TPagination>();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<InfoPageCategory | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [form, setForm] = useState<FormState>({
@@ -139,31 +141,32 @@ export default function InfoPageCategories() {
     }
   };
 
-  const handleDelete = async (cat: InfoPageCategory) => {
-    if (
-      !confirm(
-        `Delete "${cat.categoryName ?? cat.categoryHandle}"?${
-          (cat._count?.infoPages ?? 0) > 0 || (cat._count?.blogs ?? 0) > 0
-            ? ` It has ${cat._count?.infoPages ?? 0} page(s) and ${cat._count?.blogs ?? 0} post(s) assigned.`
-            : ""
-        }`,
-      )
-    )
-      return;
+  const requestDelete = (cat: InfoPageCategory) => {
+    setPendingDelete(cat);
+  };
 
-    const res = await fetch(
-      `/api/info-page/categories/${cat.id}`,
-      {
-        method: "DELETE",
-        cache: "no-store",
-      },
-    );
-    const data = await res.json();
-    if (res.ok) {
-      toast.success(data?.message || "Category deleted");
-      setCategories((prev) => prev.filter((c) => c.id !== cat.id));
-    } else {
-      toast.error(data?.message || "Something went wrong");
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const cat = pendingDelete;
+    setFormLoading(true);
+    try {
+      const res = await fetch(
+        `/api/info-page/categories/${cat.id}`,
+        {
+          method: "DELETE",
+          cache: "no-store",
+        },
+      );
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data?.message || "Category deleted");
+        setCategories((prev) => prev.filter((c) => c.id !== cat.id));
+        setPendingDelete(null);
+      } else {
+        toast.error(data?.message || "Something went wrong");
+      }
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -177,11 +180,15 @@ export default function InfoPageCategories() {
       id: "name",
       header: "Name",
       cell: ({ row }) => (
-        <span className="font-medium">
+        <button
+          type="button"
+          onClick={() => openEdit(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
           {row.original.categoryName ?? (
             <span className="text-muted-foreground">—</span>
           )}
-        </span>
+        </button>
       ),
     },
     {
@@ -218,7 +225,7 @@ export default function InfoPageCategories() {
             <Button
               size="lg"
               variant="secondary"
-              onClick={() => handleDelete(cat)}
+              onClick={() => requestDelete(cat)}
             >
               <Trash2Icon size={12} /> Delete
             </Button>
@@ -291,6 +298,43 @@ export default function InfoPageCategories() {
             </Button>
             <Button onClick={handleSave} disabled={formLoading}>
               {formLoading ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{' '}
+              &ldquo;{pendingDelete?.categoryName ?? pendingDelete?.categoryHandle}&rdquo;?
+              {(pendingDelete?._count?.infoPages ?? 0) > 0 ||
+              (pendingDelete?._count?.blogs ?? 0) > 0
+                ? ` It has ${pendingDelete?._count?.infoPages ?? 0} page(s) and ${pendingDelete?._count?.blogs ?? 0} post(s) assigned.`
+                : ""}{" "}
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setPendingDelete(null)}
+              disabled={formLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={confirmDelete}
+              disabled={formLoading}
+            >
+              {formLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

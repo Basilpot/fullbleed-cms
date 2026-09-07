@@ -1,11 +1,10 @@
 "use client";
 
-import { LucideCopy, UserCog } from "lucide-react";
+import { UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -15,8 +14,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import Link from "next/link";
-import { PasswordShowHideToggle } from "@/components/molecules/password-show-hide-toggle";
-import { siteConfig } from "@/lib/siteConfig";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type FormValues = {
   email: string;
@@ -72,59 +70,53 @@ export function LoginForm({
 
   return (
     <div
-      className={cn("flex flex-col gap-6 w-full max-w-sm", className)}
+      className={cn("flex flex-col items-center gap-6 w-full max-w-sm", className)}
       {...props}
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <UserCog className="size-6" />
-              </div>
-              <span className="sr-only">Ash and Moss</span>
-            </Link>
-            <h1 className="text-xl font-bold">Login to your account</h1>
-            {process.env.NEXT_PUBLIC_IS_GROWFORE == "true" && (
-              <>
-                <FieldDescription>
-                  Enter below credentials to get access to admin panel.
-                </FieldDescription>
-              </>
-            )}
-          </div>
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-              {...register("email")}
-            />
-          </Field>
-          <Field className="relative">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              required
-              {...register("password")}
-            />
-            <div className="absolute bottom-1 left-86">
-              <PasswordShowHideToggle inputElementId="password" />
+      <Card className="w-full">
+        <CardHeader className="flex flex-col items-center gap-2 text-center pb-2">
+          <Link
+            href="/"
+            className="flex flex-col items-center gap-2 font-medium"
+          >
+            <div className="flex size-10 items-center justify-center rounded-lg bg-foreground text-background">
+              <UserCog className="size-5" />
             </div>
-          </Field>
-          <Field>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Login"}
-            </Button>
-          </Field>
-        </FieldGroup>
-      </form>
+            <span className="sr-only">Tasche</span>
+          </Link>
+          <CardTitle className="text-xl">Login to your account</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  {...register("email")}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  {...register("password")}
+                />
+              </Field>
+              <Field>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Login"}
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

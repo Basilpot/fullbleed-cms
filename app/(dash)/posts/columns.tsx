@@ -154,7 +154,14 @@ export const blogsColumns: ColumnDef<Blog>[] = [
     accessorKey: "title",
     header: "Title",
     cell: ({ row }) => {
-      return <p>{row.original.title.substring(0, 50) + "..."}</p>;
+      return (
+        <Link
+          href={`/posts/edit?slug=${row.original.slug}`}
+          className="underline underline-offset-2"
+        >
+          {row.original.title.substring(0, 50) + "..."}
+        </Link>
+      );
     },
   },
   {

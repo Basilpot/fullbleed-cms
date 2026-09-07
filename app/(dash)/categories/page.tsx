@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { useForm } from "react-hook-form";
@@ -55,6 +55,7 @@ function flattenTree(nodes: CategoryNode[], depth = 0): (CategoryNode & { depth:
 
 export default function Categories() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,7 +91,16 @@ export default function Categories() {
     fetchCategories();
   }, []);
 
-  const flatRows = useMemo(() => flattenTree(categories), [categories]);
+  const search = (searchParams.get("search") ?? "").trim().toLowerCase();
+  const flatRows = useMemo(() => {
+    const rows = flattenTree(categories);
+    if (!search) return rows;
+    return rows.filter(
+      (c) =>
+        c.name.toLowerCase().includes(search) ||
+        c.slug.toLowerCase().includes(search),
+    );
+  }, [categories, search]);
 
   const openCreateDialog = () => {
     setIsEdit(false);
@@ -183,13 +193,18 @@ export default function Categories() {
     {
       header: "Name",
       cell: ({ row }) => (
-        <span className="font-medium" style={{ paddingLeft: row.original.depth * 16 }}>
+        <button
+          type="button"
+          onClick={() => openEditDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+          style={{ paddingLeft: row.original.depth * 16 }}
+        >
           {row.original.depth > 0 && "— "}
           {row.original.name}
-        </span>
+        </button>
       ),
     },
-    { accessorKey: "slug", header: "Slug" },
+    { accessorKey: "slug", header: "Slug/URL" },
     {
       header: "Products",
       cell: ({ row }) => row.original._count?.products ?? 0,

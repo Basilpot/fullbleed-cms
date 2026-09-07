@@ -156,10 +156,16 @@ export default function Tags() {
     {
       header: "Name",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.name}</span>
+        <button
+          type="button"
+          onClick={() => openEditDialog(row.original)}
+          className="font-medium hover:underline cursor-pointer text-left"
+        >
+          {row.original.name}
+        </button>
       ),
     },
-    { accessorKey: "slug", header: "Slug" },
+    { accessorKey: "slug", header: "Slug/URL" },
     {
       header: "Products",
       cell: ({ row }) => row.original._count?.products ?? 0,
@@ -190,7 +196,7 @@ export default function Tags() {
       cell: ({ row }) => (
         <div className="flex gap-4">
           <Button size="lg" onClick={() => openEditDialog(row.original)}>
-            <Edit3 size={12} />
+            <Edit3 size={12} /> Edit
           </Button>
           <Button
             size="lg"
@@ -200,7 +206,7 @@ export default function Tags() {
               setIsDeleteDialogOpen(true);
             }}
           >
-            <Trash2Icon size={12} />
+            <Trash2Icon size={12} /> Delete
           </Button>
         </div>
       ),

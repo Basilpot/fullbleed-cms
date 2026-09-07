@@ -221,7 +221,7 @@ const BlogFormInner = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-screen p-4">
+        <ScrollArea className="h-screen py-4 pr-4">
           {/* SEO Fields */}
           <Sheet open={showSEOFields} onOpenChange={setShowSEOFields}>
             <SheetContent side="right" className="sm:max-w-md">
@@ -270,7 +270,7 @@ const BlogFormInner = () => {
 
             <div className="flex flex-col gap-1 w-full">
               <Label htmlFor="slug" className="font-bold text-sm">
-                Slug
+                Slug/URL
               </Label>
               <div className="flex gap-1 items-center">
                 <Input {...register("slug")} />

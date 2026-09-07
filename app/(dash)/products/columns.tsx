@@ -62,11 +62,13 @@ export function createColumns(
       return (
         <div>
           {row?.original?.thumbnail ? (
-            <img
-              alt=""
-              className="size-16 object-cover"
-              src={getFullImageUrl(row?.original?.thumbnail)}
-            />
+            <Link href={`/products/preview?id=${row.original.id}`}>
+              <img
+                alt=""
+                className="size-16 object-cover"
+                src={getFullImageUrl(row?.original?.thumbnail)}
+              />
+            </Link>
           ) : (
             <div className="size-16 border"> </div>
           )}
@@ -79,9 +81,12 @@ export function createColumns(
     header: "Title",
     cell: ({ row }) => {
       return (
-        <div className="flex gap-1 items-center">
-            <p> {row.original.title.substring(0, 25) + "..."}</p>
-        </div>
+        <Link
+          href={`/products/edit?id=${row.original.id}`}
+          className="underline underline-offset-2"
+        >
+          {row.original.title.substring(0, 25) + "..."}
+        </Link>
       );
     },
   },
@@ -98,7 +103,7 @@ export function createColumns(
         onClick={onToggleSlugSort}
         className="flex items-center gap-1 font-medium"
       >
-        Slug
+        Slug/URL
         {slugSort === "asc" ? (
           <ChevronUp className="size-3.5" />
         ) : slugSort === "desc" ? (
@@ -232,11 +237,6 @@ export function createColumns(
       return (
         <Suspense fallback={<div>Loading...</div>}>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" asChild title="View Preview">
-              <Link href={`/products/preview?id=${row.getValue("id")}`}>
-                <Eye className="h-4 w-4" />
-              </Link>
-            </Button>
             <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost">
@@ -254,6 +254,14 @@ export function createColumns(
                 Copy Product ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(`/products/preview?id=${row.getValue("id")}`)
+                }
+              >
+                  <Eye />
+                  Preview
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
                   router.push(`/products/edit?id=${row.getValue("id")}`)

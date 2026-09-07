@@ -9,6 +9,7 @@ import React, { Suspense } from "react";
 
 const STEPS = [
   "Basic Information",
+  "Gallery",
   "Pricing",
   "Variants",
   "Attributes",
@@ -26,8 +27,7 @@ function LayoutContent({ children }: Readonly<{ children: React.ReactNode }>) {
     <div className="flex w-full max-w-screen mx-auto">
       <nav className="bg-gray-100 dark:bg-gray-900 mb-6 min-h-screen sticky top-0 w-65 rounded-md pt-4">
         <ScrollArea className="">
-          <ul className="@container flex items-start justify-start gap-2 min-w-max flex-col p-2">
-            {STEPS.map((stepText, i) => (
+          <ul className="@container flex items-start justify-start gap-2 flex-col">            {STEPS.map((stepText, i) => (
               <li key={stepText}>
                 <StepButton stepNumber={i + 1} stepText={stepText} />
               </li>
@@ -63,7 +63,7 @@ function LayoutContent({ children }: Readonly<{ children: React.ReactNode }>) {
           </div>
         </div>
         <ScrollArea className="h-[calc(100vh-4rem)] w-full">
-          {children}
+          <div className="p-4">{children}</div>
         </ScrollArea>
       </section>
     </div>

@@ -5,7 +5,7 @@
 
 @theme inline {
     --font-sans: var(--font-sans);
-    --font-heading: var(--font-sans);
+    --font-heading: var(--font-heading);
     --font-mono: var(--font-mono);
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -49,41 +49,41 @@
 }
 
 :root {
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-        "Liberation Mono", "Courier New", monospace;
-    --background: #f8f7f5;
-    --foreground: #1f2e26;
-    --card: #ffffff;
-    --card-foreground: #1f2e26;
-    --popover: #ffffff;
-    --popover-foreground: #1f2e26;
-    --primary: #3a5a40;
-    --primary-foreground: #f8f7f5;
-    --secondary: #a3b18a;
-    --secondary-foreground: #212619;
-    --muted: #e9e7e1;
-    --muted-foreground: #615b48;
-    --accent: #588157;
-    --accent-foreground: #f8f7f5;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
-    --border: #dad7cd;
-    --input: #dad7cd;
-    --ring: #3a5a40;
-    --chart-1: #3a5a40;
-    --chart-2: #588157;
-    --chart-3: #a3b18a;
-    --chart-4: #344e41;
-    --chart-5: #dad7cd;
-    --radius: 0.625rem;
-    --sidebar: #e9e7e1;
-    --sidebar-foreground: #1f2e26;
-    --sidebar-primary: #3a5a40;
-    --sidebar-primary-foreground: #f8f7f5;
-    --sidebar-accent: #dad7cd;
-    --sidebar-accent-foreground: #1f2e26;
-    --sidebar-border: #dad7cd;
-    --sidebar-ring: #3a5a40;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f4;
+  --secondary-foreground: #000000;
+  --muted: #f4f4f4;
+  --muted-foreground: #6b7280;
+  --accent: #f4f4f4;
+  --accent-foreground: #000000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #d4d4d4;
+  --ring: #000000;
+  --chart-1: #111111;
+  --chart-2: #333333;
+  --chart-3: #737373;
+  --chart-4: #a3a3a3;
+  --chart-5: #d4d4d4;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f4;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #000000;
 }
 
 @layer base {
@@ -95,85 +95,14 @@
     }
     html {
         @apply font-sans;
-        font-size: 112.5%;
     }
     h1,
     h2,
     h3 {
+        @apply font-heading;
         font-weight: 700;
         letter-spacing: -0.02em;
     }
-}
-
-/* ---------------------------------------------------------------------------
-   Global UI size-up — larger inputs, labels, buttons and menus everywhere
---------------------------------------------------------------------------- */
-
-[data-slot="input"],
-[data-slot="select-trigger"] {
-    height: 2.75rem;
-    min-height: 2.75rem;
-    font-size: 1rem;
-    border-radius: 0.625rem;
-}
-
-[data-slot="textarea"] {
-    font-size: 1rem;
-    border-radius: 0.625rem;
-}
-
-[data-slot="label"] {
-    font-size: 1rem;
-}
-
-[data-slot="button"] {
-    font-size: 1rem;
-    border-radius: 0.625rem;
-}
-
-[data-slot="button"]:not([data-size="icon"]):not([data-size="icon-sm"]):not([data-size="icon-lg"]):not([data-size="icon-xs"]) {
-    height: 2.75rem;
-    min-height: 2.75rem;
-}
-
-[data-slot="button"][data-size="icon"] {
-    height: 2.25rem;
-    width: 2.25rem;
-}
-
-[data-slot="button"][data-size="icon-sm"] {
-    height: 2rem;
-    width: 2rem;
-}
-
-[data-slot="button"][data-size="icon-lg"] {
-    height: 2.5rem;
-    width: 2.5rem;
-}
-
-[data-slot="select-item"],
-[data-slot="dropdown-menu-item"],
-[data-slot="dropdown-menu-checkbox-item"],
-[data-slot="dropdown-menu-radio-item"],
-[data-slot="dropdown-menu-sub-trigger"] {
-    font-size: 1rem;
-    padding-top: 0.625rem;
-    padding-bottom: 0.625rem;
-}
-
-[data-slot="select-label"],
-[data-slot="dropdown-menu-label"] {
-    font-size: 0.875rem;
-}
-
-[data-slot="sidebar-menu-button"] {
-    font-size: 1.0625rem;
-    padding-top: 0.625rem;
-    padding-bottom: 0.625rem;
-}
-
-[data-slot="table-head"] {
-    font-size: 0.9375rem;
 }
 
 /* ProseMirror / TipTap editor styles */

@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Toaster } from "sonner";
 import { redirect } from "next/navigation";
 
-const FALLBACK_NAME = "Ash and Moss";
+const FALLBACK_NAME = "Tasche";
 
 const AdminDashboardLayout = async ({
   children,
@@ -67,9 +67,9 @@ const AdminDashboardLayout = async ({
       />
       <SidebarInset className="min-h-screen flex flex-col">
         <SiteHeader />
-        <div className="min-w-0 flex-1 p-8">{children}</div>
+        <div className="min-w-0 flex-1 p-4">{children}</div>
         <div className="border-t border-border">
-          <div className="flex items-center justify-center px-8 py-3 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center px-4 py-3 text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} {companyName ?? FALLBACK_NAME}
           </div>
         </div>

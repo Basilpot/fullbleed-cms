@@ -122,7 +122,7 @@ export default function StoreSetupPage() {
             <FieldLabel htmlFor="name">Store name</FieldLabel>
             <Input
               id="name"
-              placeholder="Ash and Moss"
+              placeholder="Tasche"
               required
               value={form.name}
               onChange={update("name")}

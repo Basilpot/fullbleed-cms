@@ -12,13 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Deploy/build artifacts we don't lint:
+    ".open-next/**",
+    ".wrangler/**",
   ]),
   {
     rules: {
       // Pervasive pre-existing convention – warn instead of error.
       "@typescript-eslint/no-explicit-any": "warn",
-      // shadcn sidebar uses Math.random in useMemo – pre-existing.
-      "react-hooks/purity": "warn",
     },
   },
 ]);

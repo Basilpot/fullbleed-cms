@@ -16,6 +16,9 @@
 # next.js
 /.next/
 /out/
+# opennext / cloudflare deploy artifacts
+/.open-next/
+/.wrangler/
 
 # production
 /build

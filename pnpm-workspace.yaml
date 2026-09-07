@@ -1,9 +1,8 @@
 allowBuilds:
+  esbuild: true
   sharp: true
   unrs-resolver: true
-onlyBuiltDependencies:
-  - sharp
-  - unrs-resolver
+  workerd: true
 nodeLinker: hoisted
 overrides:
   prosemirror-changeset: 2.4.1

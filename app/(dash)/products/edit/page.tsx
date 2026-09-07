@@ -17,7 +17,7 @@ import {
   LucideEdit2,
   LucideImage,
   Plus,
-  Trash2,
+
   Upload,
   X,
 } from "lucide-react";
@@ -55,16 +55,17 @@ import { useSlugAutoFill } from "@/lib/useSlugAutoFill";
 import { MediaPicker } from "@/components/media-picker";
 import { useDraft } from "@/hooks/use-draft";
 
-const MAX_STEP = 7;
+const MAX_STEP = 8;
 
 const STEP_FIELDS: Record<number, string[]> = {
-  1: ["title", "slug", "description", "images", "videoIntro", "isFeatured", "status"],
-  2: ["price", "maxPrice", "compareAtPrice"],
-  3: ["variants"],
-  4: ["attributes"],
-  5: ["categoryId", "brandId", "tagIds"],
-  6: ["faq"],
-  7: ["metaTitle", "metaDescription", "metaKeywords", "metaRobots"],
+  1: ["title", "slug", "description", "status"],
+  2: ["images", "videoIntro"],
+  3: ["price", "maxPrice", "compareAtPrice"],
+  4: ["variants"],
+  5: ["attributes"],
+  6: ["categoryId", "brandId", "tagIds", "isFeatured"],
+  7: ["faq"],
+  8: ["metaTitle", "metaDescription", "metaKeywords", "metaRobots"],
 };
 
 function getFirstErrorStep(errors: Record<string, any>): number | null {
@@ -561,24 +562,39 @@ function ProductForm() {
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="slug">Slug</Label>
-            <LabelDescription text="Keep it short, in kebab-case e.g. organic-cotton-tee" />
-            <div className="flex gap-1 items-center">
-              <Input
-                {...register("slug")}
-                placeholder="product-title-slug"
-              />
-              <Button
-                type="button"
-                onClick={() => setValue("slug", generateSlug(getValues("title")))}
-              >
-                Generate from Title
-              </Button>
+          <div className="grid grid-cols-[1fr_auto] gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <Label htmlFor="slug">Slug/URL</Label>
+                <InstructionTooltip instruction="Keep it short, in kebab-case e.g. organic-cotton-tee" />
+              </div>
+              <div className="flex gap-1 items-center">
+                <Input
+                  {...register("slug")}
+                  placeholder="product-title-slug"
+                />
+                <Button
+                  type="button"
+                  onClick={() => setValue("slug", generateSlug(getValues("title")))}
+                >
+                  Generate from Title
+                </Button>
+              </div>
+              {errors.slug && (
+                <p className="text-sm text-red-500">{errors?.slug?.message}</p>
+              )}
             </div>
-            {errors.slug && (
-              <p className="text-sm text-red-500">{errors?.slug?.message}</p>
-            )}
+
+            <div className="flex flex-col gap-2 min-w-44">
+              <Label htmlFor="status">Status</Label>
+              <Combobox
+                options={statusOptions}
+                value={watch("status")}
+                setValue={(v: string) => setValue("status", v as any)}
+                placeholder="Select status"
+                notFoundPlaceholder="No status found."
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -593,7 +609,18 @@ function ProductForm() {
               </p>
             )}
           </div>
+        </div>
+      )}
 
+      {/* STEP 2: GALLERY */}
+      {currStep === 2 && (
+        <div className="flex flex-col gap-3">
+          <ListBox
+            list={[
+              "First image is the listing thumbnail. Drag to reorder.",
+              "Use the media library or upload new images.",
+            ]}
+          />
           <div className="flex flex-col gap-2">
             <div className="flex gap-1 items-center">
               <Label htmlFor="images">Gallery</Label>
@@ -659,28 +686,6 @@ function ProductForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="status">Status</Label>
-            <Combobox
-              options={statusOptions}
-              value={watch("status")}
-              setValue={(v: string) => setValue("status", v as any)}
-              placeholder="Select status"
-              notFoundPlaceholder="No status found."
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="isFeatured"
-              checked={watch("isFeatured")}
-              onCheckedChange={(checked) =>
-                setValue("isFeatured", checked === true)
-              }
-            />
-            <Label htmlFor="isFeatured">Featured product</Label>
-          </div>
-
-          <div className="flex flex-col gap-2">
             <div className="flex gap-1 items-center">
               <Label htmlFor="videoIntro">Video Intro (Optional)</Label>
               <InstructionTooltip instruction="Paste a YouTube or Vimeo embed URL/code to show a video on the product page." />
@@ -698,8 +703,8 @@ function ProductForm() {
         </div>
       )}
 
-      {/* STEP 2: PRICING */}
-      {currStep === 2 && (
+      {/* STEP 3: PRICING */}
+      {currStep === 3 && (
         <div className="flex flex-col gap-3">
           <ListBox
             list={[
@@ -760,8 +765,8 @@ function ProductForm() {
         </div>
       )}
 
-      {/* STEP 3: VARIANTS */}
-      {currStep === 3 && (
+      {/* STEP 4: VARIANTS */}
+      {currStep === 4 && (
         <div className="flex flex-col gap-3">
           <ListBox
             list={[
@@ -782,7 +787,7 @@ function ProductForm() {
                       size="icon"
                       onClick={() => removeVariant(index)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -902,8 +907,8 @@ function ProductForm() {
         </div>
       )}
 
-      {/* STEP 4: ATTRIBUTES */}
-      {currStep === 4 && (
+      {/* STEP 5: ATTRIBUTES */}
+      {currStep === 5 && (
         <div className="flex flex-col gap-3">
           <ListBox
             list={[
@@ -933,7 +938,7 @@ function ProductForm() {
                     size="icon"
                     onClick={() => removeAttribute(index)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -952,8 +957,8 @@ function ProductForm() {
         </div>
       )}
 
-      {/* STEP 5: CATEGORIZATION */}
-      {currStep === 5 && (
+      {/* STEP 6: CATEGORIZATION */}
+      {currStep === 6 && (
         <div className="flex flex-col gap-2">
           <div className="flex items-start gap-8">
             <div className="flex flex-col gap-2 w-full">
@@ -989,12 +994,24 @@ function ProductForm() {
               className="w-full"
             />
           </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="isFeatured"
+              checked={watch("isFeatured")}
+              onCheckedChange={(checked) =>
+                setValue("isFeatured", checked === true)
+              }
+            />
+            <Label htmlFor="isFeatured">Featured product</Label>
+          </div>
+
           <InfoCard info="Manage categories, brands, and tags from their own pages in the sidebar." />
         </div>
       )}
 
-      {/* STEP 7: SEO */}
-      {currStep === 7 && (
+      {/* STEP 8: SEO */}
+      {currStep === 8 && (
         <div className="flex flex-col gap-2 p-2">
           <div className="flex flex-col gap-2">
             <div className="flex gap-1 items-center">
@@ -1127,8 +1144,8 @@ function ProductForm() {
         </div>
       )}
 
-      {/* STEP 6: FAQ */}
-      {currStep === 6 && (
+      {/* STEP 7: FAQ */}
+      {currStep === 7 && (
         <div className="flex flex-col gap-4">
           <ListBox
             list={[
@@ -1147,7 +1164,7 @@ function ProductForm() {
                     size="icon"
                     onClick={() => removeFaq(index)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>

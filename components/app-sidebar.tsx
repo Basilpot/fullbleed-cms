@@ -6,24 +6,21 @@ import {
   LucideBadgeCheck,
   LucideColumnsSettings,
   LucideContact2,
-  LucideCopyX,
   LucideFolder,
   LucideForm,
   LucideGaugeCircle,
-  LucideHistory,
   LucideImage,
-  LucideLayers2,
+  LucideLayers,
   LucideMail,
   LucideNewspaper,
   LucideNotebookPen,
   LucidePackage,
-  LucidePalette,
   LucideReceipt,
-  LucideRoute,
-  LucideSettings,
-  LucideStar,
+  LucideRedo2,
+  LucideStars,
   LucideStore,
   LucideTag,
+  LucideBoxes,
   LucideWallet,
   type LucideIcon,
 } from "lucide-react"
@@ -54,13 +51,13 @@ export const navGroups: {
     defaultOpen: true,
     items: [
       { title: "Media", url: "/media", icon: LucideImage },
-      { title: "Info Pages", url: "/info-pages", icon: LucideNotebookPen },
+      { title: "Pages", url: "/info-pages", icon: LucideLayers },
       { title: "Posts", url: "/posts", icon: LucideNewspaper },
       { title: "Authors", url: "/authors", icon: LucideContact2 },
-      { title: "Content Categories", url: "/info-page-category", icon: LucideCopyX },
-      { title: "Testimonials", url: "/testimonials", icon: LucideStar },
-      { title: "Newsletter", url: "/newsletter", icon: LucideMail },
-      { title: "Redirects", url: "/redirects", icon: LucideRoute },
+      { title: "Categories", url: "/info-page-category", icon: LucideFolder },
+      { title: "Testimonials", url: "/testimonials", icon: LucideStars },
+      // { title: "Newsletter", url: "/newsletter", icon: LucideMail },
+      { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
     ],
   },
   {
@@ -70,32 +67,24 @@ export const navGroups: {
       { title: "Footer", url: "/footer", icon: LucideColumnsSettings },
     ],
   },
-  {
-    label: "Settings",
-    items: [
-      { title: "Settings", url: "/settings", icon: LucideSettings },
-      { title: "Basic Brand", url: "/settings/brand", icon: LucidePalette },
-      { title: "Contact & Social", url: "/settings/contact", icon: LucideContact2 },
-      { title: "Documents", url: "/settings/documents", icon: LucideFolder },
-      { title: "Reviews", url: "/settings/reviews", icon: LucideStar },
-      { title: "Sidebar", url: "/settings/sidebar", icon: LucideColumnsSettings },
-    ],
-  },
 ]
 
 const QUICK_ACTIONS = [
   { title: "Dashboard", url: "/dashboard", icon: LucideGaugeCircle },
   { title: "Products", url: "/products", icon: LucidePackage },
-  { title: "Categories", url: "/categories", icon: LucideLayers2 },
+  { title: "Categories", url: "/categories", icon: LucideFolder },
   { title: "Brands", url: "/brands", icon: LucideBadgeCheck },
   { title: "Tags", url: "/tags", icon: LucideTag },
   { title: "Orders", url: "/orders", icon: LucideReceipt },
+  { title: "Stock", url: "/stock", icon: LucideBoxes },
   { title: "Payments", url: "/payments", icon: LucideWallet },
 ]
 
-const SECONDARY_NAV = [
-  { title: "Changelog", url: "/changelog", icon: LucideHistory },
-]
+const SECONDARY_NAV: {
+  title: string
+  url: string
+  icon: LucideIcon
+}[] = []
 
 export function AppSidebar({
   companyName,
@@ -141,7 +130,7 @@ export function AppSidebar({
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
-                    {companyName ?? "Ash and Moss"}
+                    {companyName ?? "Tasche"}
                   </span>
                 </div>
               </Link>

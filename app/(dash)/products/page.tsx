@@ -8,17 +8,9 @@ import { PlusIcon } from "lucide-react";
 import { createColumns } from "./columns";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { ProductFilters } from "./product-filters";
+import { ProductFilters, STATUS_PARAM, STATUS_TABS } from "./product-filters";
 
-const STATUS_TABS = ["all", "draft", "published"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
-
-const STATUS_PARAM: Record<StatusTab, string> = {
-  all: "all",
-  draft: "draft",
-  published: "published",
-};
 
 export default function Products() {
   const [productData, setProductData] = useState<any[]>([]);
@@ -108,14 +100,6 @@ export default function Products() {
     };
   }, [page, limit, search, status, slugSort, category, brand, sort, order]);
 
-  const setStatus = (tab: StatusTab) => {
-    const params = new URLSearchParams(window.location.search);
-    if (tab === "all") params.delete("status");
-    else params.set("status", tab);
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
-
   const toggleSlugSort = () => {
     const params = new URLSearchParams(window.location.search);
     if (!slugSort) {
@@ -144,42 +128,17 @@ export default function Products() {
         </PageHeader>
       </div>
 
-      <ProductFilters />
-
-      {error ? (
-        <div className="text-red-500">{error}</div>
-      ) : (
-        <DataTable
-          data={productData}
-          columns={createColumns(
-            (id) => setProductData((prev) => prev.filter((t) => t.id !== id)),
-            slugSort,
-            toggleSlugSort,
-          )}
-          pagination={pagination}
-          isLoading={loading && productData.length === 0}
-          toolbar={
-            <div className="flex items-center gap-1 ">
-              {STATUS_TABS.map((tab) => (
-                <Button
-                  key={tab}
-                  type="button"
-                  variant={"ghost"}
-                  onClick={() => setStatus(tab)}
-                  className={cn(
-                    "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                    status === tab
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </Button>
-              ))}
-            </div>
-          }
-        />
-      )}
+      <DataTable
+        data={productData}
+        columns={createColumns(
+          (id) => setProductData((prev) => prev.filter((t) => t.id !== id)),
+          slugSort,
+          toggleSlugSort,
+        )}
+        pagination={pagination}
+        isLoading={loading && productData.length === 0}
+        toolbar={<ProductFilters />}
+      />
     </div>
   );
 }

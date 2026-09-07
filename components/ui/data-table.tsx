@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ColumnDef,
+  ExpandedState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
@@ -66,9 +68,23 @@ export function DataTable<TData, TValue>({
       ? new URLSearchParams(window.location.search)
       : new URLSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
+  const [expanded, setExpanded] = useState<ExpandedState>(true);
   const page = pagination?.page ?? Number(searchParams.get("page") ?? "1");
   const limit = pagination?.limit ?? Number(searchParams.get("limit") ?? "10");
-  const totalPages = pagination?.totalPages ?? 1;
+  const totalItems = pagination?.total ?? data.length;
+  const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(data.length / limit));
+  const safePage = Math.min(page, totalPages);
+
+  // ponytail: slices client-side when the page doesn't do server pagination.
+  // useMemo keeps the slice reference stable so TanStack doesn't treat every
+  // render as "data changed" and fire its auto-reset (which would loop).
+  const tableData = useMemo(
+    () =>
+      pagination
+        ? data
+        : data.slice((safePage - 1) * limit, safePage * limit),
+    [data, pagination, safePage, limit],
+  );
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -94,9 +110,15 @@ export function DataTable<TData, TValue>({
   };
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
+    getRowCanExpand: (row) =>
+      !!(row.original as { subRows?: unknown[] })?.subRows?.length,
+    state: { expanded },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    autoResetAll: false,
   });
 
   return (
@@ -147,7 +169,7 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                 ))
               ) : table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows.flatMap((row) => [
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -157,8 +179,24 @@ export function DataTable<TData, TValue>({
                         )}
                       </TableCell>
                     ))}
-                  </TableRow>
-                ))
+                  </TableRow>,
+                  row.getIsExpanded() &&
+                    row.getLeafRows().map((leaf) => (
+                      <TableRow
+                        key={leaf.id}
+                        className="bg-muted/30"
+                      >
+                        {leaf.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className="py-2">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    )),
+                ])
               ) : (
                 <TableRow>
                   <TableCell
@@ -174,50 +212,46 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {pagination && (
-        <div className="flex flex-wrap items-center justify-between gap-3 py-4">
-          <p className="text-sm text-muted-foreground">
-            Showing page {page} of {totalPages}
-            {typeof pagination.total === "number" &&
-              ` · ${pagination.total} items`}
-          </p>
-          <div className="flex items-center gap-3">
-            <Select
-              value={String(limit)}
-              onValueChange={(value) => updateUrl(1, Number(value))}
-            >
-              <SelectTrigger className="h-8 w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[10, 20, 30, 40, 50].map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="lg"
-              disabled={page <= 1}
-              onClick={() => updateUrl(page - 1, limit)}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="ml-1 hidden sm:inline">Prev</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              disabled={page >= totalPages}
-              onClick={() => updateUrl(page + 1, limit)}
-            >
-              <span className="ml-1 hidden sm:inline">Next</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 py-4">
+        <p className="text-sm text-muted-foreground">
+          Showing page {safePage} of {totalPages} · {totalItems} items
+        </p>
+        <div className="flex items-center gap-3">
+          <Select
+            value={String(limit)}
+            onValueChange={(value) => updateUrl(1, Number(value))}
+          >
+            <SelectTrigger className="h-8 w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[10, 20, 30, 40, 50].map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="lg"
+            disabled={safePage <= 1}
+            onClick={() => updateUrl(safePage - 1, limit)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="ml-1 hidden sm:inline">Prev</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            disabled={safePage >= totalPages}
+            onClick={() => updateUrl(safePage + 1, limit)}
+          >
+            <span className="ml-1 hidden sm:inline">Next</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

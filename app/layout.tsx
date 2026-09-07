@@ -1,17 +1,19 @@
 import { ReactNode } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
-import { livvic } from "@/lib/font";
+import { interTight, livvic } from "@/lib/font";
 
 export const metadata: Metadata = {
-  title: "Ash & Moss — Admin",
+  title: "Tasche — Admin",
   icons: "/icon.svg",
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={livvic.className}>
-      <body className={`${livvic.variable} antialiased`}>{children}</body>
+      <body className={`${livvic.variable} ${interTight.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
