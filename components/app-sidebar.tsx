@@ -32,7 +32,6 @@ import {
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: LucideGaugeCircle },
   { title: "Media", url: "/media", icon: LucideImage },
-  { title: "Pages", url: "/pages", icon: LucideLayers },
   { title: "Services", url: "/services", icon: LucideLayers },
   { title: "Posts", url: "/posts", icon: LucideNewspaper },
   { title: "Authors", url: "/authors", icon: LucideContact2 },
