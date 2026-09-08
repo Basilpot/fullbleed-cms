@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Toaster } from "sonner";
 import { redirect } from "next/navigation";
 
-const FALLBACK_NAME = "Tasche";
+const FALLBACK_NAME = "Keybud";
 
 const AdminDashboardLayout = async ({
   children,
