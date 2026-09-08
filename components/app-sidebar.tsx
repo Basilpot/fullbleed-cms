@@ -14,7 +14,6 @@ import {
   LucideStore,
   LucideTag,
   LucideUsers,
-  type LucideIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -30,36 +29,18 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export const navGroups: {
-  label: string
-  defaultOpen?: boolean
-  items: { title: string; url: string; icon: LucideIcon }[]
-}[] = [
-  {
-    label: "Content",
-    defaultOpen: true,
-    items: [
-      { title: "Media", url: "/media", icon: LucideImage },
-      { title: "Pages", url: "/pages", icon: LucideLayers },
-      { title: "Services", url: "/services", icon: LucideLayers },
-      { title: "Posts", url: "/posts", icon: LucideNewspaper },
-      { title: "Authors", url: "/authors", icon: LucideContact2 },
-      { title: "Categories", url: "/categories", icon: LucideFolder },
-      { title: "Tags", url: "/tags", icon: LucideTag },
-      { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
-    ],
-  },
-  {
-    label: "Workspace",
-    items: [
-      { title: "Members", url: "/members", icon: LucideUsers },
-      { title: "API Access", url: "/api-access", icon: LucideKeyRound },
-    ],
-  },
-]
-
-const QUICK_ACTIONS = [
+const NAV_ITEMS = [
   { title: "Dashboard", url: "/dashboard", icon: LucideGaugeCircle },
+  { title: "Media", url: "/media", icon: LucideImage },
+  { title: "Pages", url: "/pages", icon: LucideLayers },
+  { title: "Services", url: "/services", icon: LucideLayers },
+  { title: "Posts", url: "/posts", icon: LucideNewspaper },
+  { title: "Authors", url: "/authors", icon: LucideContact2 },
+  { title: "Categories", url: "/categories", icon: LucideFolder },
+  { title: "Tags", url: "/tags", icon: LucideTag },
+  { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
+  { title: "Members", url: "/members", icon: LucideUsers },
+  { title: "API Access", url: "/api-access", icon: LucideKeyRound },
 ]
 
 const SECONDARY_NAV: {
@@ -76,16 +57,6 @@ export function AppSidebar({
   companyName?: string
   user?: { name: string; email: string }
 }) {
-  const navMain = [
-    ...QUICK_ACTIONS,
-    ...navGroups.map((group) => ({
-      title: group.label,
-      url: "#",
-      isActive: group.defaultOpen,
-      items: group.items,
-    })).filter((group) => group.items.length > 0),
-  ]
-
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -107,7 +78,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={NAV_ITEMS} />
         <NavSecondary items={SECONDARY_NAV} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
