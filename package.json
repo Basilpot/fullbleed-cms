@@ -1,15 +1,14 @@
 {
-  "name": "admin-dashboard",
+  "name": "keybud",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "vinext dev --port 3001",
+    "build": "vinext build",
+    "start": "wrangler dev",
     "lint": "eslint",
-    "build:worker": "opennextjs-cloudflare build",
-    "deploy": "opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare preview"
+    "deploy": "vinext-cloudflare deploy",
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -51,6 +50,7 @@
     "@tiptap/starter-kit": "^3.27.3",
     "@tiptap/suggestion": "^3.27.3",
     "@uiw/react-textarea-code-editor": "^3.1.1",
+    "@vinext/cloudflare": "1.0.0-beta.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -58,28 +58,33 @@
     "next": "16.1.4",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-easy-crop": "^5.5.7",
     "react-hook-form": "^7.71.1",
+    "react-server-dom-webpack": "^19.2.8",
     "recharts": "^3.9.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "vinext": "1.0.0-beta.9",
     "zod": "^4.3.6",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.20.2",
+    "@cloudflare/vite-plugin": "^1.54.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-rsc": "^0.5.34",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5",
-    "wrangler": "^4.125.0"
+    "vite": "^8.2.2",
+    "wrangler": "^4.129.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -87,5 +92,6 @@
       "workerd",
       "sharp"
     ]
-  }
+  },
+  "type": "module"
 }
