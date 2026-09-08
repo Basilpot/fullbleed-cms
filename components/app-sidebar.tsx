@@ -3,25 +3,17 @@
 import * as React from "react"
 import Link from "next/link"
 import {
-  LucideBadgeCheck,
-  LucideColumnsSettings,
   LucideContact2,
   LucideFolder,
-  LucideForm,
   LucideGaugeCircle,
   LucideImage,
+  LucideKeyRound,
   LucideLayers,
-  LucideMail,
   LucideNewspaper,
-  LucideNotebookPen,
-  LucidePackage,
-  LucideReceipt,
   LucideRedo2,
-  LucideStars,
   LucideStore,
   LucideTag,
-  LucideBoxes,
-  LucideWallet,
+  LucideUsers,
   type LucideIcon,
 } from "lucide-react"
 
@@ -37,9 +29,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { useSidebarStore } from "@/store/use-sidebar-store"
-
-const SIDEBAR_MENU_API = `/api/sidebar-menu`
 
 export const navGroups: {
   label: string
@@ -51,33 +40,26 @@ export const navGroups: {
     defaultOpen: true,
     items: [
       { title: "Media", url: "/media", icon: LucideImage },
-      { title: "Pages", url: "/info-pages", icon: LucideLayers },
+      { title: "Pages", url: "/pages", icon: LucideLayers },
+      { title: "Services", url: "/services", icon: LucideLayers },
       { title: "Posts", url: "/posts", icon: LucideNewspaper },
       { title: "Authors", url: "/authors", icon: LucideContact2 },
-      { title: "Categories", url: "/info-page-category", icon: LucideFolder },
-      { title: "Testimonials", url: "/testimonials", icon: LucideStars },
-      // { title: "Newsletter", url: "/newsletter", icon: LucideMail },
+      { title: "Categories", url: "/categories", icon: LucideFolder },
+      { title: "Tags", url: "/tags", icon: LucideTag },
       { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
     ],
   },
   {
-    label: "Navigation",
+    label: "Workspace",
     items: [
-      { title: "Navbar", url: "/navbar", icon: LucideForm },
-      { title: "Footer", url: "/footer", icon: LucideColumnsSettings },
+      { title: "Members", url: "/members", icon: LucideUsers },
+      { title: "API Access", url: "/api-access", icon: LucideKeyRound },
     ],
   },
 ]
 
 const QUICK_ACTIONS = [
   { title: "Dashboard", url: "/dashboard", icon: LucideGaugeCircle },
-  { title: "Products", url: "/products", icon: LucidePackage },
-  { title: "Categories", url: "/categories", icon: LucideFolder },
-  { title: "Brands", url: "/brands", icon: LucideBadgeCheck },
-  { title: "Tags", url: "/tags", icon: LucideTag },
-  { title: "Orders", url: "/orders", icon: LucideReceipt },
-  { title: "Stock", url: "/stock", icon: LucideBoxes },
-  { title: "Payments", url: "/payments", icon: LucideWallet },
 ]
 
 const SECONDARY_NAV: {
@@ -94,27 +76,13 @@ export function AppSidebar({
   companyName?: string
   user?: { name: string; email: string }
 }) {
-  const hidden = useSidebarStore((s) => s.hidden)
-  const setHidden = useSidebarStore((s) => s.setHidden)
-
-  React.useEffect(() => {
-    fetch(SIDEBAR_MENU_API)
-      .then((res) => res.json())
-      .then((data) => {
-        const items: { url: string; visible: boolean }[] =
-          data?.data?.items ?? []
-        setHidden(items.filter((i) => i.visible === false).map((i) => i.url))
-      })
-      .catch(() => {})
-  }, [setHidden])
-
   const navMain = [
     ...QUICK_ACTIONS,
     ...navGroups.map((group) => ({
       title: group.label,
       url: "#",
       isActive: group.defaultOpen,
-      items: group.items.filter((item) => !hidden.includes(item.url)),
+      items: group.items,
     })).filter((group) => group.items.length > 0),
   ]
 
@@ -130,7 +98,7 @@ export function AppSidebar({
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
-                    {companyName ?? "Tasche"}
+                    {companyName ?? "Keybud"}
                   </span>
                 </div>
               </Link>
