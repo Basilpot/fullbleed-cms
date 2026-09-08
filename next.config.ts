@@ -1,17 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    const apiBase =
-      process.env.API_BASE_URL ?? "http://localhost:3000/api/v1";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiBase}/:path*`,
-      },
-    ];
-  },
-
   images: {
     remotePatterns: [
       {
