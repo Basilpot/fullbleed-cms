@@ -15,5 +15,7 @@ Hono router lives in [`api/app.ts`](./app.ts). It runs inside same Vinext Worker
 - `GET /api/v1/categories`
 - `GET /api/v1/tags`
 - `GET /api/v1/redirects/resolve?from=/old-path`
+- `POST /api/v1/inquiries`
 
 Content routes require `Authorization: Bearer kb_pub_...` and return published content only.
+Inquiry submissions use the same key and workspace origin allowlist.

@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { title: "Categories", url: "/categories", icon: LucideFolder },
   { title: "Tags", url: "/tags", icon: LucideTag },
   { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
+  { title: "Inquiries", url: "/inquiries", icon: LucideNewspaper },
   { title: "Members", url: "/members", icon: LucideUsers },
   { title: "API Access", url: "/api-access", icon: LucideKeyRound },
 ]

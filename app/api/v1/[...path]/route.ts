@@ -10,3 +10,7 @@ export async function GET(request: Request, { params }: Context) {
 export async function OPTIONS(request: Request, { params }: Context) {
   return api.fetch(request, env);
 }
+
+export async function POST(request: Request, { params }: Context) {
+  return api.fetch(request, env);
+}
