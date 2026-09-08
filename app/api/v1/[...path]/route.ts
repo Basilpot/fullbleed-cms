@@ -14,3 +14,11 @@ export async function OPTIONS(request: Request, { params }: Context) {
 export async function POST(request: Request, { params }: Context) {
   return api.fetch(request, env);
 }
+
+export async function PATCH(request: Request, { params }: Context) {
+  return api.fetch(request, env);
+}
+
+export async function DELETE(request: Request, { params }: Context) {
+  return api.fetch(request, env);
+}

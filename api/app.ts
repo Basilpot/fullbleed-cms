@@ -11,12 +11,32 @@ export const api = new Hono<ApiEnv>().basePath("/api");
 api.get("/health", (c) => c.json({ service: "keybud-api", status: "ok", timestamp: new Date().toISOString() }));
 
 api.get("/inquiries", async (c) => {
-  const token = c.req.header("cookie")?.match(/(?:^|;\s*)keybud_session=([^;]+)/)?.[1];
-  if (!token) return c.json({ error: "Unauthorized" }, 401);
-  const session = await c.env.DB.prepare("SELECT workspace_id FROM sessions JOIN memberships ON memberships.user_id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP LIMIT 1").bind(await sha256(token)).first<{ workspace_id: string }>();
+  const session = await inquiryWorkspace(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const { results } = await c.env.DB.prepare("SELECT id, name, email, phone, subject, message, status, created_at FROM inquiries WHERE workspace_id = ? ORDER BY created_at DESC LIMIT 100").bind(session.workspace_id).all();
   return c.json({ data: results });
+});
+
+async function inquiryWorkspace(c: any) {
+  const token = c.req.header("cookie")?.match(/(?:^|;\s*)keybud_session=([^;]+)/)?.[1];
+  if (!token) return null;
+  return c.env.DB.prepare("SELECT workspace_id FROM sessions JOIN memberships ON memberships.user_id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP LIMIT 1").bind(await sha256(token)).first<{ workspace_id: string }>();
+}
+
+api.patch("/inquiries/:id", async (c) => {
+  const session = await inquiryWorkspace(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const body = await c.req.json().catch(() => null) as { status?: string } | null;
+  if (!body?.status || !["new", "read", "archived"].includes(body.status)) return c.json({ error: "Invalid status" }, 400);
+  const result = await c.env.DB.prepare("UPDATE inquiries SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND workspace_id = ?").bind(body.status, c.req.param("id"), session.workspace_id).run();
+  return result.meta.changes ? c.json({ data: { updated: true } }) : c.json({ error: "Not found" }, 404);
+});
+
+api.delete("/inquiries/:id", async (c) => {
+  const session = await inquiryWorkspace(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const result = await c.env.DB.prepare("DELETE FROM inquiries WHERE id = ? AND workspace_id = ?").bind(c.req.param("id"), session.workspace_id).run();
+  return result.meta.changes ? c.json({ data: { deleted: true } }) : c.json({ error: "Not found" }, 404);
 });
 
 api.post("/v1/inquiries", async (c) => {
