@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Deploy/build artifacts we don't lint:
     ".open-next/**",
     ".wrangler/**",
+    "dist/**",
   ]),
   {
     rules: {
