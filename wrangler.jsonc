@@ -23,6 +23,7 @@
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "keybud-media" }],
   "vars": {
     "APP_URL": "https://keybud.app",
-    "MEDIA_URL": "https://media.keybud.app"
+    "MEDIA_URL": "https://media.keybud.app",
+    "PLATFORM_ADMIN_EMAIL": ""
   }
 }

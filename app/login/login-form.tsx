@@ -33,7 +33,7 @@ export function LoginForm({
     try {
       setIsLoading(true);
       const res = await fetch(
-        `/api/admin/login`,
+        `/api/auth/login`,
         {
           method: "POST",
           credentials: "include",
@@ -48,13 +48,6 @@ export function LoginForm({
       if (res.ok) {
         toast.success("Login successful");
         sessionStorage.setItem("tab_session_active", "true");
-        if (payload.token) {
-          try {
-            localStorage.setItem("admin_token", payload.token);
-          } catch (e: any) {
-            throw new Error("Error: ", e);
-          }
-        }
         router.push("/dashboard");
       } else {
         const msg = payload?.message || "Login failed";
@@ -115,6 +108,9 @@ export function LoginForm({
               </Field>
             </FieldGroup>
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            New to Keybud? <Link className="text-primary underline" href="/signup">Create workspace</Link>
+          </p>
         </CardContent>
       </Card>
     </div>
