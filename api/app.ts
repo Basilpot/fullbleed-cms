@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { publicApi } from "@/lib/server/public-api";
 import { sha256 } from "@/lib/server/auth";
+import { workspaceFor } from "./workspace";
+import { media } from "./media";
 
 export type ApiEnv = {
   Bindings: Cloudflare.Env;
@@ -10,21 +12,17 @@ export const api = new Hono<ApiEnv>().basePath("/api");
 
 api.get("/health", (c) => c.json({ service: "keybud-api", status: "ok", timestamp: new Date().toISOString() }));
 
+api.route("/media-library", media);
+
 api.get("/inquiries", async (c) => {
-  const session = await inquiryWorkspace(c);
+  const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const { results } = await c.env.DB.prepare("SELECT id, name, email, phone, subject, message, status, created_at FROM inquiries WHERE workspace_id = ? ORDER BY created_at DESC LIMIT 100").bind(session.workspace_id).all();
   return c.json({ data: results });
 });
 
-async function inquiryWorkspace(c: any) {
-  const token = c.req.header("cookie")?.match(/(?:^|;\s*)keybud_session=([^;]+)/)?.[1];
-  if (!token) return null;
-  return c.env.DB.prepare("SELECT workspace_id FROM sessions JOIN memberships ON memberships.user_id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP LIMIT 1").bind(await sha256(token)).first<{ workspace_id: string }>();
-}
-
 api.patch("/inquiries/:id", async (c) => {
-  const session = await inquiryWorkspace(c);
+  const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const body = await c.req.json().catch(() => null) as { status?: string } | null;
   if (!body?.status || !["new", "read", "archived"].includes(body.status)) return c.json({ error: "Invalid status" }, 400);
@@ -33,7 +31,7 @@ api.patch("/inquiries/:id", async (c) => {
 });
 
 api.delete("/inquiries/:id", async (c) => {
-  const session = await inquiryWorkspace(c);
+  const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const result = await c.env.DB.prepare("DELETE FROM inquiries WHERE id = ? AND workspace_id = ?").bind(c.req.param("id"), session.workspace_id).run();
   return result.meta.changes ? c.json({ data: { deleted: true } }) : c.json({ error: "Not found" }, 404);
@@ -55,6 +53,43 @@ api.post("/v1/inquiries", async (c) => {
   await c.env.DB.prepare("INSERT INTO inquiries (id, workspace_id, name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?, ?, ?)")
     .bind(crypto.randomUUID(), workspace.workspace_id, body.name.trim(), body.email.trim().toLowerCase(), body.phone?.trim() || null, body.subject?.trim() || null, body.message.trim()).run();
   return c.json({ data: { received: true } }, 201);
+});
+
+const KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+
+function generateApiKey() {
+  const bytes = crypto.getRandomValues(new Uint8Array(30));
+  let suffix = "";
+  for (const byte of bytes) suffix += KEY_ALPHABET[byte % KEY_ALPHABET.length];
+  const full = `kb_pub_${suffix}`;
+  return { full, prefix: full.slice(0, 14) };
+}
+
+api.get("/keys", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, prefix, created_at, revoked_at FROM api_keys WHERE workspace_id = ? ORDER BY created_at DESC",
+  ).bind(session.workspace_id).all();
+  return c.json({ data: results });
+});
+
+api.post("/keys", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const { full, prefix } = generateApiKey();
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare("INSERT INTO api_keys (id, workspace_id, prefix, key_hash) VALUES (?, ?, ?, ?)")
+    .bind(id, session.workspace_id, prefix, await sha256(full)).run();
+  return c.json({ data: { id, prefix, key: full, created_at: new Date().toISOString(), revoked_at: null } }, 201);
+});
+
+api.post("/keys/:id/revoke", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const result = await c.env.DB.prepare("UPDATE api_keys SET revoked_at = CURRENT_TIMESTAMP WHERE id = ? AND workspace_id = ? AND revoked_at IS NULL")
+    .bind(c.req.param("id"), session.workspace_id).run();
+  return result.meta.changes ? c.json({ data: { revoked: true } }) : c.json({ error: "Not found" }, 404);
 });
 
 api.all("/v1/*", async (c) => {
