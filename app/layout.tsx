@@ -4,7 +4,7 @@ import "./globals.css";
 import { interTight, livvic } from "@/lib/font";
 
 export const metadata: Metadata = {
-  title: "Fullbleed — CMS",
+  title: "Fullbleed by Basilpot | Publish content without the CMS overhead.",
   icons: {
     icon: [
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },

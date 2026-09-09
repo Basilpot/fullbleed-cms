@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from "next/image";
 
 type FormValues = {
   email: string;
@@ -72,16 +71,9 @@ export function LoginForm({
         <CardHeader className="flex flex-col items-center gap-2 text-center pb-2">
           <Link
             href="/"
-            className="flex flex-col items-center gap-2 font-medium"
+            className="flex flex-row items-center gap-2 font-medium"
           >
-            <Image
-              src="/fullbleed-logo.png"
-              alt="Fullbleed"
-              width={120}
-              height={40}
-              priority
-            />
-            <span className="sr-only">Fullbleed</span>
+            <span>Fullbleed</span>
           </Link>
           <CardTitle className="text-xl">Login to your account</CardTitle>
         </CardHeader>
