@@ -253,7 +253,7 @@ function EditorToolbar({
         ref={toolbarRef}
         role="toolbar"
         aria-label="Text formatting"
-        className="sticky top-0 z-10 border-b bg-muted/30 p-1 flex flex-wrap gap-0.5"
+        className="sticky top-0 z-10 border-b bg-muted backdrop-blur p-1 flex flex-wrap gap-0.5"
         onKeyDown={handleKeyDown}
       >
         {/* Text formatting */}
@@ -918,7 +918,7 @@ export function TipTapEditor({
 
   return (
     <div
-      className={`border rounded-md flex flex-col overflow-clip ${focusMode === "spotlight" ? "spotlight-mode" : ""}`}
+      className={`border rounded-md flex flex-col ${focusMode === "spotlight" ? "spotlight-mode" : ""}`}
       style={{ minHeight: typeof minHeight === "number" ? `${minHeight}px` : minHeight }}
     >
       <EditorToolbar
