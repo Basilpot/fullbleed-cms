@@ -130,7 +130,7 @@ const defaultCommands: SlashCommandItem[] = [
   {
     id: "postShortcode",
     title: "Post Embed",
-    description: "Embed another blog post by slug",
+    description: "Embed another post by slug",
     icon: FileText,
     aliases: ["post", "embed"],
     command: ({ editor, range }) => {

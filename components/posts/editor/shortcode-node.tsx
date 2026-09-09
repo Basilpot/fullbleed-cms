@@ -45,7 +45,7 @@ function shortcodeText(attrs: ShortcodeAttrs): string {
 }
 
 const KIND_META: Record<ShortcodeKind, { label: string; hint: string; icon: typeof FileText }> = {
-  post: { label: "Post Embed", hint: "Slug of the blog post to embed", icon: FileText },
+  post: { label: "Post Embed", hint: "Slug of the post to embed", icon: FileText },
 };
 
 function ShortcodeNodeView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {

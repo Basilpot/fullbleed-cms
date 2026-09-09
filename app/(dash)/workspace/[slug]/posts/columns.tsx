@@ -31,19 +31,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type BlogCategory = {
+type PostCategory = {
   id: string;
   categoryName: string;
   categoryHandle: string;
 };
 
-type Blog = {
+type Post = {
   id: string;
   title: string;
   slug: string;
   content: string;
   coverImage: string;
-  category: BlogCategory;
+  category: PostCategory;
   metaTitle: string;
   metaDescription: string;
   tags: string;
@@ -63,7 +63,7 @@ type Blog = {
   };
 };
 
-const deleteBlog = async (id: string) => {
+const deletePost = async (id: string) => {
   const response = await fetch(
     `/api/blogs/${id}`,
     {
@@ -81,7 +81,7 @@ const deleteBlog = async (id: string) => {
     );
   }
 };
-const permanentlyDeleteBlog = async (id: string) => {
+const permanentlyDeletePost = async (id: string) => {
   const res = await fetch(
     `/api/blogs/${id}?permanent=true`,
     {
@@ -101,7 +101,7 @@ const permanentlyDeleteBlog = async (id: string) => {
   }
 };
 
-const restoreBlog = async (id: string) => {
+const restorePost = async (id: string) => {
   const response = await fetch(
     `/api/blogs/restore/${id}`,
     {
@@ -123,7 +123,7 @@ const restoreBlog = async (id: string) => {
   }
 };
 
-export const blogsColumns = (slug: string): ColumnDef<Blog>[] => [
+export const postsColumns = (slug: string): ColumnDef<Post>[] => [
   {
     accessorKey: "id",
     header: "SN",
@@ -191,7 +191,7 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
   //     return (
   //       <Link
   //         className="flex gap-1 items-center text-primary-foreground bg-primary w-fit rounded-full py-0.5 px-2"
-  //         href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/blogs/${row.getValue("slug")}`}
+  //         href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/posts/${row.getValue("slug")}`}
   //       >
   //         <Tooltip>
   //           <TooltipTrigger className="flex gap-2 items-center">
@@ -231,7 +231,7 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
     id: "actions",
     header: "",
     cell: ({ row }) => {
-      const blog = row.original;
+      const post = row.original;
 
       return (
         <DropdownMenu>
@@ -248,11 +248,11 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
                 className="group"
                 onClick={() =>
                   navigator.clipboard.writeText(
-                    `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/${blog.slug}`,
+                    `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/${post.slug}`,
                   )
                 }
               >
-                <Copy className="group-hover:text-accent-foreground" /> Copy Blog URL
+                <Copy className="group-hover:text-accent-foreground" /> Copy Post URL
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -266,7 +266,7 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
             {!row.original.inTrash && (
               <DropdownMenuItem
                 className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
-                onClick={() => deleteBlog(row.original.id)}
+                onClick={() => deletePost(row.original.id)}
               >
                 <Trash className="group-hover:text-red-500" /> Delete
               </DropdownMenuItem>
@@ -274,7 +274,7 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
             {row.original.inTrash && (
               <DropdownMenuItem
                 className="text-muted-foreground hover:text-muted-foreground! hover:bg-muted!"
-                onClick={() => restoreBlog(row.original.id)}
+                onClick={() => restorePost(row.original.id)}
               >
                 <LucideRefreshCcw /> Restore
               </DropdownMenuItem>
@@ -282,7 +282,7 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
             {row.original.inTrash && (
               <DropdownMenuItem
                 className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
-                onClick={() => permanentlyDeleteBlog(row.original.id)}
+                onClick={() => permanentlyDeletePost(row.original.id)}
               >
                 <LucideTrash className="group-hover:text-red-500" /> Permanently
                 Delete

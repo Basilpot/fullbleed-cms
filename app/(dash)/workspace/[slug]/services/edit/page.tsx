@@ -93,7 +93,7 @@ const InfoPageFormInner = () => {
         const res = await fetch(
           `/api/info-page/${pageId}`,
         );
-        if (!res.ok) throw new Error("Failed to fetch info page data");
+        if (!res.ok) throw new Error("Failed to fetch page data");
 
         const data = await res.json();
         const infoPage = data.data?.infoPage;
@@ -111,8 +111,8 @@ const InfoPageFormInner = () => {
 
         if (infoPage.coverImage) setCoverImage(infoPage.coverImage);
       } catch (error) {
-        console.error("Failed to fetch info page:", error);
-        toast.error("Failed to load info page data");
+        console.error("Failed to fetch page:", error);
+        toast.error("Failed to load page data");
       } finally {
         setIsLoading(false);
       }
@@ -155,7 +155,7 @@ const InfoPageFormInner = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result?.message || "Failed to save info page");
+        throw new Error(result?.message || "Failed to save page");
       }
 
       draft.clear();
@@ -181,7 +181,7 @@ const InfoPageFormInner = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-xl">
-            {id ? "Edit Info Page" : "Add New Info Page"}
+            {id ? "Edit Page" : "Add New Page"}
           </h2>
           <div className="btn-group flex gap-1 justify-center items-center">
             <Button

@@ -60,7 +60,7 @@ export default function Dashboard() {
     return (
       <div className="space-y-6">
         <PageHeader title="Dashboard" description="Content overview" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="rounded-xl border p-6 space-y-3">
               <Skeleton className="h-4 w-20" />
@@ -89,7 +89,7 @@ export default function Dashboard() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Content</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Total Content"
             description="Posts and pages combined"
@@ -113,11 +113,11 @@ export default function Dashboard() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Posts & pages</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
           <Link href={`/workspace/${slug}/posts`} className="contents">
             <StatCard
               title="Posts"
-              description="Articles and blog entries"
+              description="Articles and posts"
               value={stats?.posts}
               icon={LucideNewspaper}
             />
@@ -135,7 +135,7 @@ export default function Dashboard() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Library</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
           <Link href={`/workspace/${slug}/media`} className="contents">
             <StatCard
               title="Media Files"

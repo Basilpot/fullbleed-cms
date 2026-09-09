@@ -103,7 +103,7 @@ export default function InfoPages() {
       <div className="flex flex-col pb-4">
         <div className="flex justify-between items-center">
           <PageHeader
-            title="Info Pages"
+            title="Pages"
             description="Static pages like about and contact"
           />
           <Link href={`/workspace/${slug}/services/edit`}>
@@ -119,7 +119,7 @@ export default function InfoPages() {
           columns={infoPagesColumns(slug)}
           data={infoPages}
           pagination={pagination}
-          searchPlaceholder="Search info pages…"
+          searchPlaceholder="Search pages…"
           toolbar={
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1">

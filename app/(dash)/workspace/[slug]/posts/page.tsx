@@ -24,11 +24,11 @@ type BlogCategory = {
   categoryHandle: string;
 };
 
-export default function Blogs() {
+export default function Posts() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = usePathname().split("/")[2];
-  const [blogs, setBlogs] = useState<any[]>([]);
+  const [posts, setBlogs] = useState<any[]>([]);
   const page = Number(searchParams.get("page") ?? "1");
   const limit = Number(searchParams.get("limit") ?? "10");
   const [pagination, setPagination] = useState<TPagination>();
@@ -63,7 +63,7 @@ export default function Blogs() {
         setPagination(data?.data?.pagination ?? undefined);
         setBlogs(data?.data?.data ?? []);
       } catch (error) {
-        console.error("Failed to fetch blogs:", error);
+        console.error("Failed to fetch posts:", error);
         setBlogs([]);
         setPagination(undefined);
       }
@@ -161,7 +161,7 @@ export default function Blogs() {
       <div className="max-w-full">
         <DataTable
           columns={blogsColumns(slug)}
-          data={blogs}
+          data={posts}
           pagination={pagination}
           searchable={false}
         />

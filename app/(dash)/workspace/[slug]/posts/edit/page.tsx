@@ -31,14 +31,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-type BlogCategoryType = {
+type PostCategoryType = {
   id: string;
   categoryName: string;
   categoryHandle: string;
 };
 
-const BlogFormInner = () => {
-  const [categories, setCategories] = useState<BlogCategoryType[]>([]);
+const PostFormInner = () => {
+  const [categories, setCategories] = useState<PostCategoryType[]>([]);
   const [showSEOFields, setShowSEOFields] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +67,7 @@ const BlogFormInner = () => {
   useSlugAutoFill(control, setValue, "title", "slug");
 
   // ── Draft / auto-save ──────────────────────────────────────────────────────
-  const draftKey = slug ? `blog-${slug}` : "blog-new";
+  const draftKey = slug ? `post-${slug}` : "post-new";
   const draft = useDraft(draftKey, { getValues: () => getValues(), onRestore: (data) => reset(data) });
 
   useEffect(() => {
@@ -89,39 +89,39 @@ const BlogFormInner = () => {
     }
   }, []);
 
-  // Fetch blog for edit
-  const fetchBlogData = useCallback(
+  // Fetch post for edit
+  const fetchPostData = useCallback(
     async (slug: string) => {
       try {
         setIsLoading(true);
         const res = await fetch(
           `/api/blogs/${slug}`,
         );
-        if (!res.ok) throw new Error("Failed to fetch blog data");
+        if (!res.ok) throw new Error("Failed to fetch post data");
 
-        const blog = await res.json();
+        const post = await res.json();
 
         // Extract IDs from nested objects
-        const categoryId = blog.blogCategoryId || blog.category?.id || "";
+        const categoryId = post.blogCategoryId || post.category?.id || "";
 
         // Reset all form fields including dropdowns
         reset({
-          title: blog.title || "",
-          slug: blog.slug || "",
+          title: post.title || "",
+          slug: post.slug || "",
           category: categoryId,
-          metaTitle: blog.metaTitle || "",
-          metaDescription: blog.metaDescription || "",
-          tags: blog.tags || "",
-          coverImage: blog.coverImage || "",
-          content: blog.content || "",
-          published: blog.published || false,
-          publishedAt: blog.publishedAt || "",
+          metaTitle: post.metaTitle || "",
+          metaDescription: post.metaDescription || "",
+          tags: post.tags || "",
+          coverImage: post.coverImage || "",
+          content: post.content || "",
+          published: post.published || false,
+          publishedAt: post.publishedAt || "",
         });
 
-        if (blog.coverImage) setCoverImage(blog.coverImage);
+        if (post.coverImage) setCoverImage(post.coverImage);
       } catch (error) {
-        console.error("Failed to fetch blog:", error);
-        toast.error("Failed to load blog data");
+        console.error("Failed to fetch post:", error);
+        toast.error("Failed to load post data");
       } finally {
         setIsLoading(false);
       }
@@ -133,14 +133,14 @@ const BlogFormInner = () => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Fetch blog data when editing
+  // Fetch post data when editing
   useEffect(() => {
     if (slug) {
-      fetchBlogData(slug);
+      fetchPostData(slug);
     }
-  }, [slug, fetchBlogData]);
+  }, [slug, fetchPostData]);
 
-  // Submit blog with publish status
+  // Submit post with publish status
   const onSubmit = async (data: any) => {
     try {
       setIsLoading(true);
@@ -169,20 +169,20 @@ const BlogFormInner = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result?.message || "Failed to save blog");
+        throw new Error(result?.message || "Failed to save post");
       }
 
       draft.clear();
       toast.success(
         slug
-          ? "Blog updated successfully!"
-          : "Blog saved successfully!",
+          ? "Post updated successfully!"
+          : "Post saved successfully!",
       );
       router.back();
     } catch (error: any) {
-      console.error("Error saving blog:", error);
+      console.error("Error saving post:", error);
       toast.error(
-        error.message || "Something went wrong while saving the blog",
+        error.message || "Something went wrong while saving the post",
       );
     } finally {
       setIsLoading(false);
@@ -195,7 +195,7 @@ const BlogFormInner = () => {
         {/* Header and action buttons */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-xl">
-            {slug ? "Edit Blog" : "Add New Blog"}
+            {slug ? "Edit Post" : "Add New Post"}
           </h2>
           <div className="btn-group flex gap-1 justify-center items-center">
             <Button
@@ -358,10 +358,10 @@ const BlogFormInner = () => {
   );
 };
 
-export default function EnhancedBlogForm() {
+export default function EnhancedPostForm() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <BlogFormInner />
+      <PostFormInner />
     </Suspense>
   );
 }
