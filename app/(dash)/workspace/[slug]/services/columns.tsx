@@ -96,7 +96,7 @@ export const infoPagesColumns = (slug: string): ColumnDef<InfoPage>[] => [
     cell: ({ row }) => {
       return (
         <Link
-          href={`/workspace/${slug}/info-pages/edit?id=${row.original.id}`}
+          href={`/workspace/${slug}/services/edit?id=${row.original.id}`}
           className="underline underline-offset-2"
         >
           {row.original.title.substring(0, 50) + "..."}
@@ -181,7 +181,7 @@ export const infoPagesColumns = (slug: string): ColumnDef<InfoPage>[] => [
               <Copy /> Copy Page URL
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <Link href={`/workspace/${slug}/info-pages/edit?id=${page.id}`}>
+            <Link href={`/workspace/${slug}/services/edit?id=${page.id}`}>
               <DropdownMenuItem>
                 <Edit /> Edit
               </DropdownMenuItem>

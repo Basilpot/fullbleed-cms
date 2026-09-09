@@ -106,7 +106,7 @@ export default function InfoPages() {
             title="Info Pages"
             description="Static pages like about and contact"
           />
-          <Link href={`/workspace/${slug}/info-pages/edit`}>
+          <Link href={`/workspace/${slug}/services/edit`}>
             <Button size={"lg"}>
               <Plus /> Create New
             </Button>

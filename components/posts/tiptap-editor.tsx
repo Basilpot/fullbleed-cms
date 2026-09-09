@@ -919,7 +919,7 @@ export function TipTapEditor({
   return (
     <div
       className={`border rounded-md flex flex-col overflow-clip ${focusMode === "spotlight" ? "spotlight-mode" : ""}`}
-      style={{ height: typeof minHeight === "number" ? `${minHeight}px` : minHeight }}
+      style={{ minHeight: typeof minHeight === "number" ? `${minHeight}px` : minHeight }}
     >
       <EditorToolbar
         editor={editor}
@@ -928,7 +928,7 @@ export function TipTapEditor({
       />
       <EditorBubbleMenu editor={editor} />
       <TableBubbleMenu editor={editor} />
-      <div className="flex-1 overflow-y-auto min-h-0 relative">
+      <div className="relative">
         <EditorContent editor={editor} />
         <DragHandleWrapper editor={editor} />
       </div>
