@@ -58,8 +58,8 @@ export default function InfoPages() {
           },
         );
         const data = await response.json();
-        setPagination(data?.pagination ?? undefined);
-        setInfoPages(data?.infoPages ?? []);
+        setPagination(data?.data?.pagination ?? undefined);
+        setInfoPages(data?.data?.infoPages ?? []);
       } catch (error) {
         console.error("Failed to fetch info pages:", error);
         setInfoPages([]);
@@ -80,7 +80,7 @@ export default function InfoPages() {
           },
         );
         const data = await res.json();
-        setCategories(data?.categories ?? []);
+        setCategories(data?.data?.categories ?? []);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }

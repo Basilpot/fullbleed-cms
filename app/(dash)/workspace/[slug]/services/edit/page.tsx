@@ -80,7 +80,7 @@ const InfoPageFormInner = () => {
         `/api/info-page/categories?limit=99`,
       );
       const data = await res.json();
-      setCategories(data?.categories ?? []);
+      setCategories(data?.data?.categories ?? []);
     } catch (error) {
       console.error("Failed to fetch categories:", error);
     }

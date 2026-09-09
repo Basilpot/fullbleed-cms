@@ -60,8 +60,8 @@ export default function Blogs() {
           credentials: "include",
         });
         const data = await response.json();
-        setPagination(data?.pagination ?? undefined);
-        setBlogs(data?.data ?? []);
+        setPagination(data?.data?.pagination ?? undefined);
+        setBlogs(data?.data?.data ?? []);
       } catch (error) {
         console.error("Failed to fetch blogs:", error);
         setBlogs([]);
@@ -82,7 +82,7 @@ export default function Blogs() {
           },
         );
         const data = await res.json();
-        setCategories(data?.categories ?? []);
+        setCategories(data?.data?.categories ?? []);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }

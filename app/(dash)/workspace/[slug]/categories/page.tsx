@@ -83,8 +83,8 @@ export default function InfoPageCategories() {
       );
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setCategories(data?.categories ?? []);
-      setPagination(data?.pagination ?? undefined);
+      setCategories(data?.data?.categories ?? []);
+      setPagination(data?.data?.pagination ?? undefined);
     } catch {
       toast.error("Failed to load categories");
     } finally {

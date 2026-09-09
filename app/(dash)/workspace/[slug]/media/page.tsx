@@ -108,10 +108,10 @@ export default function MediaLibraryPage() {
       }
     }
     if (successCount > 0) {
-      toast.success(`${successCount} file(s) uploaded`);
+      toast.success(`${successCount} ${successCount === 1 ? "file" : "files"} uploaded`);
       loadMedia();
     }
-    if (failCount > 0) toast.error(`${failCount} file(s) failed`);
+    if (failCount > 0) toast.error(`${failCount} ${failCount === 1 ? "file" : "files"} failed to upload`);
     setUploading(false);
   };
 
