@@ -6,8 +6,8 @@ interface __BaseEnv_Env {
 	DB: D1Database;
 	CF_VERSION_METADATA: WorkerVersionMetadata;
 	ASSETS: Fetcher;
-	APP_URL: "https://keybud.app";
-	MEDIA_URL: "https://media.keybud.app";
+	APP_URL: "https://fullbleed.basilpot.com";
+	MEDIA_URL: "https://media.fullbleed.basilpot.com";
 	PLATFORM_ADMIN_EMAIL: "";
 }
 declare namespace Cloudflare {

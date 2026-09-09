@@ -19,8 +19,9 @@ export async function POST(request: Request) {
       env.DB.prepare("INSERT INTO workspaces (id, name, slug) VALUES (?, ?, ?)").bind(workspaceId, workspaceName, slug),
       env.DB.prepare("INSERT INTO memberships (workspace_id, user_id, role) VALUES (?, ?, 'owner')").bind(workspaceId, userId),
     ]);
-  } catch {
-    return Response.json({ message: "Email or workspace name already exists" }, { status: 409 });
+  } catch (error) {
+    console.error("register failed", error);
+    return Response.json({ message: "Email or workspace name already exists", detail: error instanceof Error ? error.message : String(error) }, { status: 409 });
   }
   const session = await createSession(userId);
   const response = Response.json({ data: { user: { id: userId, name, email }, workspace: { id: workspaceId, name: workspaceName, slug } } }, { status: 201 });

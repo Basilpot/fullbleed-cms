@@ -4,7 +4,7 @@ import "./globals.css";
 import { interTight, livvic } from "@/lib/font";
 
 export const metadata: Metadata = {
-  title: "Keybud — CMS",
+  title: "Fullbleed — CMS",
   icons: "/icon.svg",
 };
 

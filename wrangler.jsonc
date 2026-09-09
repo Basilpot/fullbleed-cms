@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "keybud",
+  "name": "fullbleed",
   "main": "vinext/server/fetch-handler",
   "compatibility_date": "2026-09-08",
   "compatibility_flags": ["nodejs_compat"],
@@ -8,22 +8,22 @@
     "directory": "dist/client",
     "binding": "ASSETS"
   },
-  "routes": [{ "pattern": "keybud.app", "custom_domain": true }],
+  "routes": [{ "pattern": "fullbleed.basilpot.com", "custom_domain": true }],
   "observability": { "enabled": true, "head_sampling_rate": 1 },
   "cache": { "enabled": true },
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "keybud",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_name": "fullbleed",
+      "database_id": "50947ec2-477c-4c86-8627-2ed604c56d6a",
       "migrations_dir": "migrations"
     }
   ],
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "keybud-media" }],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "fullbleed-media" }],
   "vars": {
-    "APP_URL": "https://keybud.app",
-    "MEDIA_URL": "https://media.keybud.app",
-    "PLATFORM_ADMIN_EMAIL": ""
+    "APP_URL": "https://fullbleed.basilpot.com",
+    "MEDIA_URL": "https://media.fullbleed.basilpot.com",
+    "PLATFORM_ADMIN_EMAIL": "tejghartikshetri@gmail.com"
   }
 }

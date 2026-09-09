@@ -6,7 +6,7 @@ import type { ApiEnv } from "./app";
 export const platformAdmin = new Hono<ApiEnv>();
 
 async function requirePlatformAdmin(c: Context<ApiEnv>) {
-  const token = c.req.header("cookie")?.match(/(?:^|;\s*)keybud_session=([^;]+)/)?.[1];
+  const token = c.req.header("cookie")?.match(/(?:^|;\s*)fullbleed_session=([^;]+)/)?.[1];
   if (!token) return null;
   const session = await sessionFor(token);
   if (!session?.is_platform_admin) return null;

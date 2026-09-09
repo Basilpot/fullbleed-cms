@@ -35,7 +35,7 @@ export type Palette = {
 export const PALETTES: Palette[] = [
   {
     id: "ash-moss",
-    name: "Keybud",
+    name: "Fullbleed",
     swatch: ["#000000", "#ffffff", "#737373", "#e5e5e5", "#f4f4f4"],
     tokens: {
       background: "#ffffff",

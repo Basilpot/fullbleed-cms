@@ -36,7 +36,7 @@ Uploaded files live in the `MEDIA` R2 bucket under `{workspace_id}/{uuid}/{filen
 `url` is `/api/media-library/file/{key}` (absolute path), usable directly in `<img>`.
 
 ```bash
-# Upload check (valid `keybud_session` cookie from any logged-in browser session)
-curl -s -b $'keybud_session=YOUR_SESSION_TOKEN' \
+# Upload check (valid `fullbleed_session` cookie from any logged-in browser session)
+curl -s -b $'fullbleed_session=YOUR_SESSION_TOKEN' \
   -F file=@some-image.png http://localhost:8787/api/media-library/upload
 ```

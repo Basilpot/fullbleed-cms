@@ -77,7 +77,7 @@ export function LoginForm({
             <div className="flex size-10 items-center justify-center rounded-lg bg-foreground text-background">
               <UserCog className="size-5" />
             </div>
-            <span className="sr-only">Keybud</span>
+            <span className="sr-only">Fullbleed</span>
           </Link>
           <CardTitle className="text-xl">Login to your account</CardTitle>
         </CardHeader>
@@ -111,7 +111,7 @@ export function LoginForm({
             </FieldGroup>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            New to Keybud? <Link className="text-primary underline" href="/signup">Create workspace</Link>
+            New to Fullbleed? <Link className="text-primary underline" href="/signup">Create workspace</Link>
           </p>
         </CardContent>
       </Card>

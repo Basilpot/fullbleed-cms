@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 import { redirect } from "next/navigation";
 import { sessionFor } from "@/lib/server/auth";
 
-const FALLBACK_NAME = "Keybud";
+const FALLBACK_NAME = "Fullbleed";
 
 const AdminDashboardLayout = async ({
   children,
@@ -18,7 +18,7 @@ const AdminDashboardLayout = async ({
   const { slug } = await params;
   const cookieStore = await cookies();
 
-  const session = await sessionFor(cookieStore.get("keybud_session")?.value);
+  const session = await sessionFor(cookieStore.get("fullbleed_session")?.value);
   if (!session) redirect("/login");
   if (session.workspace_slug !== slug) redirect(`/workspace/${session.workspace_slug}/dashboard`);
 
