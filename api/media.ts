@@ -23,7 +23,7 @@ type MediaRow = {
 const EXTERNAL_KEY = "external:";
 const SELECT = "id, object_key, filename, alt, caption, title, description, mime_type, file_size, width, height, created_at, updated_at";
 
-function objectKeyToUrl(objectKey: string) {
+export function objectKeyToUrl(objectKey: string) {
   if (objectKey.startsWith(EXTERNAL_KEY)) return objectKey.slice(EXTERNAL_KEY.length);
   return `/api/media-library/file/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
 }

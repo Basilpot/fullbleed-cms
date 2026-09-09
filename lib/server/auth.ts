@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 const encoder = new TextEncoder();
 const SESSION_DAYS = 30;
 
-export type Session = { id: string; email: string; name: string; is_platform_admin: number; workspace_id: string; workspace_name: string; role: "owner" | "editor" };
+export type Session = { id: string; email: string; name: string; is_platform_admin: number; workspace_id: string; workspace_name: string; workspace_slug: string; role: "owner" | "editor" };
 
 function hex(bytes: ArrayBuffer) {
   return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -45,7 +45,7 @@ export async function createSession(userId: string) {
 export async function sessionFor(token?: string) {
   if (!token) return null;
   return env.DB.prepare(`SELECT users.id, users.email, users.name, users.is_platform_admin,
-      memberships.workspace_id, workspaces.name AS workspace_name, memberships.role
+      memberships.workspace_id, workspaces.name AS workspace_name, workspaces.slug AS workspace_slug, memberships.role
     FROM sessions
     JOIN users ON users.id = sessions.user_id
     JOIN memberships ON memberships.user_id = users.id

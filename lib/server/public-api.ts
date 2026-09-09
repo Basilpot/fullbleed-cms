@@ -107,7 +107,7 @@ async function tagsFor(contentIds: string[]) {
 
 async function listContent(url: URL, workspace: ApiKeyWorkspace, kind: "page" | "service" | "post") {
   const { page, limit, offset } = pagination(url);
-  const conditions = ["content.workspace_id = ?", "content.kind = ?", "content.status = 'published'"];
+  const conditions = ["content.workspace_id = ?", "content.kind = ?", "content.status = 'published'", "content.deleted_at IS NULL"];
   const values: string[] = [workspace.workspace_id, kind];
 
   const category = url.searchParams.get("category");
@@ -137,7 +137,7 @@ async function listContent(url: URL, workspace: ApiKeyWorkspace, kind: "page" | 
 
 async function getContent(workspace: ApiKeyWorkspace, kind: "page" | "service" | "post", slug: string) {
   const row = await env.DB.prepare(`${contentSelect}
-    WHERE content.workspace_id = ? AND content.kind = ? AND content.slug = ? AND content.status = 'published'`)
+    WHERE content.workspace_id = ? AND content.kind = ? AND content.slug = ? AND content.status = 'published' AND content.deleted_at IS NULL`)
     .bind(workspace.workspace_id, kind, slug).first<Record<string, unknown>>();
   if (!row) return json({ error: "Not found" }, 404);
   const tags = kind === "post" ? await tagsFor([row.id as string]) : new Map();

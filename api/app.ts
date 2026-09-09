@@ -3,6 +3,7 @@ import { publicApi } from "@/lib/server/public-api";
 import { sha256 } from "@/lib/server/auth";
 import { workspaceFor } from "./workspace";
 import { media } from "./media";
+import { cms } from "./cms";
 
 export type ApiEnv = {
   Bindings: Cloudflare.Env;
@@ -13,6 +14,7 @@ export const api = new Hono<ApiEnv>().basePath("/api");
 api.get("/health", (c) => c.json({ service: "keybud-api", status: "ok", timestamp: new Date().toISOString() }));
 
 api.route("/media-library", media);
+api.route("/", cms);
 
 api.get("/inquiries", async (c) => {
   const session = await workspaceFor(c);

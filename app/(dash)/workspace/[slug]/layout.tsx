@@ -10,13 +10,17 @@ const FALLBACK_NAME = "Keybud";
 
 const AdminDashboardLayout = async ({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ slug: string }>;
 }) => {
+  const { slug } = await params;
   const cookieStore = await cookies();
 
   const session = await sessionFor(cookieStore.get("keybud_session")?.value);
   if (!session) redirect("/login");
+  if (session.workspace_slug !== slug) redirect(`/workspace/${session.workspace_slug}/dashboard`);
 
   return (
     <SidebarProvider
@@ -29,6 +33,7 @@ const AdminDashboardLayout = async ({
       }
     >
       <AppSidebar
+        workspaceSlug={slug}
         companyName={session.workspace_name ?? FALLBACK_NAME}
         user={{ name: session.name, email: session.email }}
       />

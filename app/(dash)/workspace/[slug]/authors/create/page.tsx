@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MediaPicker } from "@/components/media-picker";
@@ -20,6 +20,7 @@ export default function AddOrEditAuthor() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const slug = usePathname().split("/")[2];
 
   const authorId = searchParams.get("authorId");
 
@@ -100,7 +101,7 @@ export default function AddOrEditAuthor() {
         return;
       }
 
-      router.push("/authors");
+      router.push(`/workspace/${slug}/authors`);
     } catch (err) {
       console.error(err);
       setMessage("Something went wrong");
@@ -203,7 +204,7 @@ export default function AddOrEditAuthor() {
         </div>
 
         <div className="btn-group flex gap-4 items-center">
-          <Link href={"/authors/"}>
+          <Link href={`/workspace/${slug}/authors`}>
             <Button variant={"secondary"} size={"lg"}>
               Cancel
             </Button>

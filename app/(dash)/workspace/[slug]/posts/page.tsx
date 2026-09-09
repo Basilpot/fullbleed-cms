@@ -8,7 +8,7 @@ import { blogsColumns } from "./columns";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -27,6 +27,7 @@ type BlogCategory = {
 export default function Blogs() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const slug = usePathname().split("/")[2];
   const [blogs, setBlogs] = useState<any[]>([]);
   const page = Number(searchParams.get("page") ?? "1");
   const limit = Number(searchParams.get("limit") ?? "10");
@@ -109,7 +110,7 @@ export default function Blogs() {
             title="Posts"
             description="Articles and informational content"
           />
-          <Link href={"/posts/edit"}>
+          <Link href={`/workspace/${slug}/posts/edit`}>
             <Button size={"lg"}>
               <Plus /> Create New
             </Button>
@@ -159,7 +160,7 @@ export default function Blogs() {
 
       <div className="max-w-full">
         <DataTable
-          columns={blogsColumns}
+          columns={blogsColumns(slug)}
           data={blogs}
           pagination={pagination}
           searchable={false}

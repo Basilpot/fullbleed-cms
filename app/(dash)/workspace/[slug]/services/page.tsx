@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { infoPagesColumns } from "./columns";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -27,6 +27,7 @@ type InfoPageCategory = {
 export default function InfoPages() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const slug = usePathname().split("/")[2];
   const [status, setStatus] = useState("all");
   const [infoPages, setInfoPages] = useState<any[]>([]);
   const page = Number(searchParams.get("page") ?? "1");
@@ -105,7 +106,7 @@ export default function InfoPages() {
             title="Info Pages"
             description="Static pages like about and contact"
           />
-          <Link href={"/info-pages/edit"}>
+          <Link href={`/workspace/${slug}/info-pages/edit`}>
             <Button size={"lg"}>
               <Plus /> Create New
             </Button>
@@ -115,7 +116,7 @@ export default function InfoPages() {
 
       <div className="max-w-full">
         <DataTable
-          columns={infoPagesColumns}
+          columns={infoPagesColumns(slug)}
           data={infoPages}
           pagination={pagination}
           searchPlaceholder="Search info pages…"

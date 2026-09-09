@@ -123,7 +123,7 @@ const restoreBlog = async (id: string) => {
   }
 };
 
-export const blogsColumns: ColumnDef<Blog>[] = [
+export const blogsColumns = (slug: string): ColumnDef<Blog>[] => [
   {
     accessorKey: "id",
     header: "SN",
@@ -156,7 +156,7 @@ export const blogsColumns: ColumnDef<Blog>[] = [
     cell: ({ row }) => {
       return (
         <Link
-          href={`/posts/edit?slug=${row.original.slug}`}
+href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
           className="underline underline-offset-2"
         >
           {row.original.title.substring(0, 50) + "..."}
@@ -257,7 +257,7 @@ export const blogsColumns: ColumnDef<Blog>[] = [
             )}
             <DropdownMenuSeparator />
             {!row.original.inTrash && (
-              <Link href={`/posts/edit?slug=${row.original.slug}`}>
+              <Link href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}>
                 <DropdownMenuItem className="group">
                   <Edit className="group-hover:text-accent-foreground" /> Edit
                 </DropdownMenuItem>

@@ -14,6 +14,7 @@ import {
   LucideStore,
   LucideTag,
   LucideUsers,
+  type LucideIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -30,17 +31,17 @@ import {
 } from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
-  { title: "Dashboard", url: "/dashboard", icon: LucideGaugeCircle },
-  { title: "Media", url: "/media", icon: LucideImage },
-  { title: "Services", url: "/services", icon: LucideLayers },
-  { title: "Posts", url: "/posts", icon: LucideNewspaper },
-  { title: "Authors", url: "/authors", icon: LucideContact2 },
-  { title: "Categories", url: "/categories", icon: LucideFolder },
-  { title: "Tags", url: "/tags", icon: LucideTag },
-  { title: "Redirects", url: "/redirects", icon: LucideRedo2 },
-  { title: "Inquiries", url: "/inquiries", icon: LucideNewspaper },
-  { title: "Members", url: "/members", icon: LucideUsers },
-  { title: "API Access", url: "/api-access", icon: LucideKeyRound },
+  { title: "Dashboard", url: "dashboard", icon: LucideGaugeCircle },
+  { title: "Media", url: "media", icon: LucideImage },
+  { title: "Services", url: "services", icon: LucideLayers },
+  { title: "Posts", url: "posts", icon: LucideNewspaper },
+  { title: "Authors", url: "authors", icon: LucideContact2 },
+  { title: "Categories", url: "categories", icon: LucideFolder },
+  { title: "Tags", url: "tags", icon: LucideTag },
+  { title: "Redirects", url: "redirects", icon: LucideRedo2 },
+  { title: "Inquiries", url: "inquiries", icon: LucideNewspaper },
+  { title: "Members", url: "members", icon: LucideUsers },
+  { title: "API Access", url: "api-access", icon: LucideKeyRound },
 ]
 
 const SECONDARY_NAV: {
@@ -50,20 +51,24 @@ const SECONDARY_NAV: {
 }[] = []
 
 export function AppSidebar({
+  workspaceSlug,
   companyName,
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
+  workspaceSlug: string
   companyName?: string
   user?: { name: string; email: string }
 }) {
+  const base = `/workspace/${workspaceSlug}`
+  const navItems = NAV_ITEMS.map((item) => ({ ...item, url: `${base}/${item.url}` }))
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href={`${base}/dashboard`}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <LucideStore className="size-4" />
                 </div>
@@ -78,7 +83,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={NAV_ITEMS} />
+        <NavMain items={navItems} />
         <NavSecondary items={SECONDARY_NAV} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

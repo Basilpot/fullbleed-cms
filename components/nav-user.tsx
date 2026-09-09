@@ -6,7 +6,7 @@ import {
   LogOut,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 
 import {
   Avatar,
@@ -41,6 +41,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const slug = usePathname().split("/")[2]
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -97,7 +98,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/account">
+                <Link href={`/workspace/${slug}/account`}>
                   <BadgeCheck />
                   Account
                 </Link>
