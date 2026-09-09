@@ -50,8 +50,8 @@ export async function sessionFor(token?: string) {
     JOIN users ON users.id = sessions.user_id
     JOIN memberships ON memberships.user_id = users.id
     JOIN workspaces ON workspaces.id = memberships.workspace_id
-    WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP
-    ORDER BY memberships.role = 'owner' DESC, memberships.created_at ASC LIMIT 1`)
+    WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP AND users.disabled_at IS NULL
+    ORDER BY memberships.created_at DESC, memberships.rowid DESC LIMIT 1`)
     .bind(await sha256(token)).first<Session>();
 }
 

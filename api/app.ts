@@ -4,6 +4,8 @@ import { sha256 } from "@/lib/server/auth";
 import { workspaceFor } from "./workspace";
 import { media } from "./media";
 import { cms } from "./cms";
+import { members } from "./members";
+import { platformAdmin } from "./platform";
 
 export type ApiEnv = {
   Bindings: Cloudflare.Env;
@@ -14,6 +16,8 @@ export const api = new Hono<ApiEnv>().basePath("/api");
 api.get("/health", (c) => c.json({ service: "keybud-api", status: "ok", timestamp: new Date().toISOString() }));
 
 api.route("/media-library", media);
+api.route("/members", members);
+api.route("/admin", platformAdmin);
 api.route("/", cms);
 
 api.get("/inquiries", async (c) => {

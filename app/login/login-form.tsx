@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import Link from "next/link";
@@ -27,6 +27,8 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const { register, handleSubmit } = useForm<FormValues>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const [isLoading, setIsLoading] = useState(false);
 
   async function onSubmit(data: FormValues) {
@@ -48,7 +50,7 @@ export function LoginForm({
       if (res.ok) {
         toast.success("Login successful");
         sessionStorage.setItem("tab_session_active", "true");
-        router.push("/dashboard");
+        router.push(next ?? "/dashboard");
       } else {
         const msg = payload?.message || "Login failed";
         toast.error(msg);
