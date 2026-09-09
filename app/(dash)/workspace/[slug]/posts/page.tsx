@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable, type TPagination } from "@/components/ui/data-table";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { blogsColumns } from "./columns";
+import { postsColumns } from "./columns";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -160,7 +160,7 @@ export default function Posts() {
 
       <div className="max-w-full">
         <DataTable
-          columns={blogsColumns(slug)}
+          columns={postsColumns(slug)}
           data={posts}
           pagination={pagination}
           searchable={false}
