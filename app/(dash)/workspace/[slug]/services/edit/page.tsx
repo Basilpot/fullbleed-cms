@@ -96,7 +96,7 @@ const InfoPageFormInner = () => {
         if (!res.ok) throw new Error("Failed to fetch info page data");
 
         const data = await res.json();
-        const infoPage = data.infoPage;
+        const infoPage = data.data?.infoPage;
 
         reset({
           title: infoPage.title ?? "",
