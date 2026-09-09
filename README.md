@@ -1,93 +1,121 @@
-# Ash & Moss Admin Dashboard
+# Fullbleed
 
-The admin dashboard for the Ash & Moss furniture store. Built with Next.js App Router; provides authenticated content management for products, orders, payments, blog posts, info pages, site navigation, and SEO-related redirects.
+A lightweight, multitenant content system for publishing simple website content
+without dragging in a full-scale CMS. Runs as a single Cloudflare Worker with a D1
+database and an R2 media bucket.
 
-## Overview
+**Publish web content** — pages and posts with author, category, and tags —
+manage images, handle contact-form inquiries and redirects, invite team members, and
+serve everything to any website through a read-only **public API** authenticated with
+`kb_pub_…` keys.
 
-- Admin authentication via `/login`
-- Protected dashboard and content management at `/dashboard`
-- CRUD management for:
-  - Products, variants, and product images
-  - Categories, brands, and tags
-  - Orders and payments
-  - Info pages and legal pages
-  - Blog posts and authors
-  - Testimonials and reviews
-  - Navigation (navbar/footer)
-  - Media library and redirects
-  - Site configuration (brand, contact, store setup)
-- Server-side protected layout using cookies and session guard
+## Cloud vs. self-hosted
 
-## Technology Stack
+| | Cloud | Self-hosted |
+|---|---|---|
+| Hosting | Hosted by us — you pay & go | Your Cloudflare account, free |
+| Setup | Sign up at [fullbleed.basilpot.com](https://fullbleed.basilpot.com) | [Self-hosting guide](https://fullbleed.basilpot.com/docs/self-hosting) |
+| Codebase | Identical | Identical |
 
-- Next.js 16 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS 4
-- Radix UI primitives
-- Lucide icons
-- React Hook Form + Zod
-- Zustand for state management
-- Sonner for notifications
-- TipTap rich text editor
+## Feature highlights
 
-## Project Structure
+- Multi-tenant **workspaces** with owner/editor roles and email invitations
+- **Pages** and **Posts** content types with SEO metadata and cover media. Services are
+  a type of page.
+- **Media library** on object storage with public image URLs
+- **Public JSON API** — published content, taxonomy, redirect resolution, and inquiry
+  submission via publishable API keys
+- **Inquiries** inbox for contact forms submitted from your websites
+- **Platform admin** panel for managing users across workspaces
+- Custom-domain worker and media host; `workers.dev` works too
 
-- `app/` — Next.js app directory
-  - `app/login/` — login page and form (`/admin` redirects here)
-  - `app/(dash)/` — protected dashboard routes and admin UI pages
-  - `app/layout.tsx` — root HTML layout
-- `components/` — reusable UI components, atoms, molecules, organisms, and page components
-- `lib/` — helper utilities, fonts, validation, and config
-- `store/` — client-state management hooks
+## Documentation
 
-## Key Pages
+Full user + developer docs are hosted at
+**[fullbleed.basilpot.com/docs](https://fullbleed.basilpot.com/docs)**:
 
-- `/login` — admin login page
-- `/dashboard` — store analytics (products, orders, revenue)
-- `/products`, `/categories`, `/brands`, `/tags` — catalog management
-- `/orders`, `/payments` — order and payment management
-- `/posts`, `/authors` — blog content
-- `/testimonials`, `/reviews` — social proof
-- `/navbar`, `/footer` — manage navigation
-- `/media` — media library
-- `/redirects` — manage redirect rules
-- `/settings` — brand, contact, store setup, site config
+- [Overview](https://fullbleed.basilpot.com/docs)
+- [Using the dashboard](https://fullbleed.basilpot.com/docs/dashboard)
+- [Public API & API keys](https://fullbleed.basilpot.com/docs/public-api)
+- [Self-hosting](https://fullbleed.basilpot.com/docs/self-hosting)
 
-## Setup
+## Using the API in 30 seconds
+
+Create a key in **API Access**, then:
 
 ```bash
-pnpm install
-pnpm dev
+curl -H "Authorization: Bearer kb_pub_YOUR_KEY" \
+  https://fullbleed.basilpot.com/api/v1/posts?limit=5
 ```
 
-The app runs on `http://localhost:3001` in this stack (API on `:3000`).
+```json
+{
+  "data": [ { "id": "…", "type": "post", "title": "…", "bodyHtml": "…" } ],
+  "meta": { "page": 1, "limit": 5, "total": 12 }
+}
+```
 
-## Environment Variables
+Send contact-form inquiries with `POST /api/v1/inquiries`. Only published content is
+ever returned. See the [Public API docs](https://fullbleed.basilpot.com/docs/public-api)
+for every endpoint.
 
-The app expects the following environment variables to connect to the API and configure the admin experience:
+## Development
 
-- `API_BASE_URL` — backend API base URL (server-side only, never exposed to the browser; all client calls go through the same-origin `/api` proxy)
-- `NEXT_PUBLIC_WEBSITE_URL` — storefront URL used for preview links and redirects
-- `NEXT_PUBLIC_WEBSITE_DOMAIN` — storefront domain used for image domains
-- `NEXT_PUBLIC_IMAGE_DOMAIN` — API image hostname for `next/image`
-- `NEXT_PUBLIC_ADMIN_EMAIL` — admin email displayed in the sidebar
-- `NEXT_PUBLIC_FRONTEND_BASE_URL` — storefront base URL
-- `NEXT_PUBLIC_IS_GROWFORE` — agency-branding toggle
+```sh
+pnpm install
+pnpm exec wrangler d1 migrations apply fullbleed --local   # local dev DB
+pnpm dev                            # dev server on http://localhost:3001
+pnpm build                          # production build
+pnpm start                          # run the built worker locally
+```
 
-## Scripts
+Invitation emails go through Resend: set `RESEND_API_KEY` in a local `.dev.vars` file
+(see `.dev.vars.example`) and as a production secret (`wrangler secret put`).
+`RESEND_FROM` is a worker var in `wrangler.jsonc`.
 
-- `pnpm dev` — start development server
-- `pnpm build` — build production app
-- `pnpm start` — run production server
-- `pnpm lint` — run ESLint
+## Deploy
 
-## Notes
+See the [self-hosting guide](https://fullbleed.basilpot.com/docs/self-hosting) for
+full steps (D1, R2, migrations, custom domains). In short:
 
-- The admin layout uses server-side cookie checking and redirects unauthorized users to `/login`.
-- API requests are made from client components using `fetch` with `credentials: "include"`.
-- The project is structured as an admin-first dashboard rather than a public-facing site.
+```sh
+pnpm run deploy   # not `pnpm deploy` — that's the pnpm built-in
+```
+
+## Repository layout
+
+- `app/` — Next.js App Router UI (dashboard, docs site, auth pages)
+- `api/` — the Hono API: `/api/*` for the dashboard, `/api/v1/*` for the public API
+- `lib/` — shared server logic (auth, sessions, media helpers, email)
+- `migrations/` — D1 SQL migrations
+- `docs/` — documentation source (markdown)
+
+Developer architecture notes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Setup guide
+
+Local development, self-hosting, and production deployment are covered in the
+[Self-hosting guide](https://fullbleed.basilpot.com/docs/self-hosting). The short
+version:
+
+```sh
+git clone git@github.com:Basilpot/fullbleed-cms.git
+cd fullbleed-cms
+pnpm install
+cp .dev.vars.example .dev.vars          # add RESEND_API_KEY if you want emails
+pnpm exec wrangler d1 migrations apply fullbleed --local
+pnpm dev                                # http://localhost:3001
+```
+
+For your own Cloudflare deployment (D1, R2, custom domains), follow every step in
+the self-hosting guide.
 
 ## License
 
-This repository is private and intended for internal store management. Powered by [Growfore Solution](https://growfore.com/).
+[MIT](LICENSE)
+
+## Contributions
+
+This project is developed by Basilpot and is **not accepting external
+contributions**. Issues and feature requests are tracked internally. You are
+welcome to fork and self-host under the MIT license.

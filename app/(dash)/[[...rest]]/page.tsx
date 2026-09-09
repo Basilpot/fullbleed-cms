@@ -3,11 +3,14 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { sessionFor } from "@/lib/server/auth";
 import { Button } from "@/components/ui/button";
+import { SiteNav } from "@/components/site-nav";
 
 function MarketingPage() {
   return (
-    <main className="flex min-h-[80vh] items-center justify-center px-6">
-      <section className="mx-auto max-w-2xl text-center">
+    <div>
+      <SiteNav />
+      <main className="flex min-h-[80vh] items-center justify-center px-6">
+        <section className="mx-auto max-w-2xl text-center">
         <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
           Publish content without the CMS overhead.
         </h1>
@@ -24,7 +27,8 @@ function MarketingPage() {
           </Button>
         </div>
       </section>
-    </main>
+      </main>
+    </div>
   );
 }
 

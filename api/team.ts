@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { sha256 } from "@/lib/server/auth";
+import { sendInviteEmail } from "@/lib/server/email";
 import { workspaceFor } from "./workspace";
 import type { ApiEnv } from "./app";
 
@@ -57,6 +58,8 @@ members.post("/", async (c) => {
   } catch {
     return c.json({ error: "An invitation for this email already exists" }, 409);
   }
+  const workspace = await c.env.DB.prepare("SELECT name FROM workspaces WHERE id = ?").bind(session.workspace_id).first<{ name: string }>();
+  sendInviteEmail(email, workspace?.name ?? "your workspace", `${c.env.APP_URL}/invite/${token}`).catch((error) => console.error("invite email failed", error));
   return c.json({ data: { token, email, expiresAt } }, 201);
 });
 

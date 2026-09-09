@@ -24,6 +24,7 @@
   "vars": {
     "APP_URL": "https://fullbleed.basilpot.com",
     "MEDIA_URL": "https://media.fullbleed.basilpot.com",
-    "PLATFORM_ADMIN_EMAIL": "tejghartikshetri@gmail.com"
+    "PLATFORM_ADMIN_EMAIL": "tejghartikshetri@gmail.com",
+    "RESEND_FROM": "Fullbleed <fullbleed@basilpot.com>"
   }
 }

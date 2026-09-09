@@ -47,3 +47,6 @@ next-env.d.ts
 .playwright-mcp
 /dist/
 .vinext/
+
+# local wrangler secrets
+.dev.vars
