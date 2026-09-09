@@ -133,12 +133,12 @@ const BlogFormInner = () => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Fetch blog data after categories are loaded
+  // Fetch blog data when editing
   useEffect(() => {
-    if (slug && categories.length > 0) {
+    if (slug) {
       fetchBlogData(slug);
     }
-  }, [slug, categories.length, fetchBlogData]);
+  }, [slug, fetchBlogData]);
 
   // Submit blog with publish status
   const onSubmit = async (data: any) => {

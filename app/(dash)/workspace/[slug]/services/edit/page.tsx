@@ -125,10 +125,10 @@ const InfoPageFormInner = () => {
   }, [fetchCategories]);
 
   useEffect(() => {
-    if (id && categories.length > 0) {
+    if (id) {
       fetchInfoPageData(id);
     }
-  }, [id, categories.length, fetchInfoPageData]);
+  }, [id, fetchInfoPageData]);
 
   const onSubmit = async (data: any) => {
     try {
