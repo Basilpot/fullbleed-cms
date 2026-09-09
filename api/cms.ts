@@ -580,19 +580,36 @@ cms.patch("/admin/me", async (c) => {
 cms.get("/admin/analytics", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
-  const row = await c.env.DB.prepare("SELECT COUNT(*) AS total, SUM(status = 'published') AS published, SUM(status = 'draft') AS draft FROM content WHERE workspace_id = ?").bind(session.workspace_id).first<{ total: number; published: number; draft: number }>();
+  const [contentRows, ...counts] = await c.env.DB.batch([
+    c.env.DB.prepare("SELECT kind, COUNT(*) AS total, SUM(status = 'published') AS published, SUM(status = 'draft') AS draft FROM content WHERE workspace_id = ? GROUP BY kind").bind(session.workspace_id),
+    c.env.DB.prepare("SELECT COUNT(*) AS n FROM media WHERE workspace_id = ?").bind(session.workspace_id),
+    c.env.DB.prepare("SELECT COUNT(*) AS n FROM authors WHERE workspace_id = ?").bind(session.workspace_id),
+    c.env.DB.prepare("SELECT COUNT(*) AS n FROM categories WHERE workspace_id = ?").bind(session.workspace_id),
+    c.env.DB.prepare("SELECT COUNT(*) AS n FROM tags WHERE workspace_id = ?").bind(session.workspace_id),
+  ]);
+  const byKind = Object.fromEntries(
+    (contentRows.results as { kind: string; total: number; published: number; draft: number }[]).map((r) => [
+      r.kind,
+      { total: Number(r.total), published: Number(r.published), draft: Number(r.draft) },
+    ]),
+  );
+  const [posts, services] = [byKind.post ?? byKind.page, byKind.service].map((k) => k ?? { total: 0, published: 0, draft: 0 });
+  const num = (i: number) => Number((counts[i].results as { n: number }[])[0]?.n ?? 0);
   return c.json({
     data: {
-      totalProducts: Number(row?.total ?? 0),
-      publishedProducts: Number(row?.published ?? 0),
-      draftProducts: Number(row?.draft ?? 0),
-      totalOrders: 0,
-      pendingOrders: 0,
-      confirmedOrders: 0,
-      completedOrders: 0,
-      failedOrders: 0,
-      cancelledOrders: 0,
-      totalRevenue: 0,
+      contentTotal: posts.total + services.total,
+      contentPublished: posts.published + services.published,
+      contentDraft: posts.draft + services.draft,
+      posts: posts.total,
+      postsPublished: posts.published,
+      postsDraft: posts.draft,
+      services: services.total,
+      servicesPublished: services.published,
+      servicesDraft: services.draft,
+      media: num(0),
+      authors: num(1),
+      categories: num(2),
+      tags: num(3),
     },
   });
 });
