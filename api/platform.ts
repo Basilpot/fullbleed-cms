@@ -35,7 +35,7 @@ function noticeValues(body: NoticeInput | null) {
   if (!title || !message) return { error: "Title and message are required" } as const;
   if (!["info", "warning", "error"].includes(variant)) return { error: "Invalid notice variant" } as const;
   if ((linkUrl && !linkLabel) || (!linkUrl && linkLabel)) return { error: "Link URL and label must be provided together" } as const;
-  if (linkUrl && !linkUrl.startsWith("/") && !URL.canParse(linkUrl)) return { error: "Invalid link URL" } as const;
+  if (linkUrl && !["http:", "https:"].includes(new URL(linkUrl, "https://local").protocol)) return { error: "Invalid link URL" } as const;
   if (startsAt && Number.isNaN(Date.parse(startsAt))) return { error: "Invalid start date" } as const;
   if (endsAt && Number.isNaN(Date.parse(endsAt))) return { error: "Invalid end date" } as const;
   if (startsAt && endsAt && startsAt >= endsAt) return { error: "End date must be after start date" } as const;

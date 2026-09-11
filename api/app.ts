@@ -23,7 +23,7 @@ api.route("/", cms);
 api.get("/notices/active", async (c) => {
   const { results } = await c.env.DB.prepare(
     `SELECT id, title, message, variant, link_url, link_label FROM notices
-     WHERE active = 1 AND (starts_at IS NULL OR starts_at <= CURRENT_TIMESTAMP) AND (ends_at IS NULL OR ends_at > CURRENT_TIMESTAMP)
+     WHERE active = 1 AND (starts_at IS NULL OR datetime(starts_at) <= CURRENT_TIMESTAMP) AND (ends_at IS NULL OR datetime(ends_at) > CURRENT_TIMESTAMP)
      ORDER BY created_at DESC`,
   ).all();
   return c.json({ data: { notices: results } });

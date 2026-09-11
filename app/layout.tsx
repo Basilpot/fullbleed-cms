@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import { interTight, livvic } from "@/lib/font";
+import { NoticeBanner } from "@/components/notice-banner";
 
 export const metadata: Metadata = {
   title: "Fullbleed by Basilpot | Publish content without the CMS overhead.",
@@ -23,6 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={livvic.className}>
       <body className={`${livvic.variable} ${interTight.variable} antialiased`}>
+        <NoticeBanner />
         {children}
       </body>
     </html>
