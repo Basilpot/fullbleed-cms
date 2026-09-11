@@ -20,6 +20,15 @@ api.route("/members", members);
 api.route("/admin", platformAdmin);
 api.route("/", cms);
 
+api.get("/notices/active", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    `SELECT id, title, message, variant, link_url, link_label FROM notices
+     WHERE active = 1 AND (starts_at IS NULL OR starts_at <= CURRENT_TIMESTAMP) AND (ends_at IS NULL OR ends_at > CURRENT_TIMESTAMP)
+     ORDER BY created_at DESC`,
+  ).all();
+  return c.json({ data: { notices: results } });
+});
+
 api.get("/inquiries", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
