@@ -23,7 +23,7 @@ members.get("/", async (c) => {
 
   const inviteRows = await c.env.DB.prepare(
     `SELECT id, email, role, expires_at, accepted_at, created_at FROM invitations
-     WHERE workspace_id = ? ORDER BY created_at DESC`,
+     WHERE workspace_id = ? AND accepted_at IS NULL ORDER BY created_at DESC`,
   ).bind(session.workspace_id).all<{ id: string; email: string; role: string; expires_at: string; accepted_at: string | null; created_at: string }>();
 
   return c.json({
@@ -51,6 +51,9 @@ members.post("/", async (c) => {
 
   const token = randomToken("kb_inv_");
   const expiresAt = new Date(Date.now() + 7 * 86_400_000).toISOString();
+  await c.env.DB.prepare(
+    "DELETE FROM invitations WHERE workspace_id = ? AND email = ? AND accepted_at IS NULL AND expires_at <= CURRENT_TIMESTAMP",
+  ).bind(session.workspace_id, email).run();
   try {
     await c.env.DB.prepare(
       "INSERT INTO invitations (id, workspace_id, email, role, token_hash, expires_at) VALUES (?, ?, ?, 'editor', ?, ?)",
@@ -84,13 +87,14 @@ members.post("/accept", async (c) => {
   if (!token) return c.json({ error: "Token is required" }, 400);
 
   const invite = await c.env.DB.prepare(
-    `SELECT invitations.id, invitations.workspace_id, invitations.role, invitations.expires_at, invitations.accepted_at, workspaces.slug
+    `SELECT invitations.id, invitations.workspace_id, invitations.email, invitations.role, invitations.expires_at, invitations.accepted_at, workspaces.slug
      FROM invitations JOIN workspaces ON workspaces.id = invitations.workspace_id
      WHERE invitations.token_hash = ?`,
-  ).bind(await sha256(token)).first<{ id: string; workspace_id: string; role: string; expires_at: string; accepted_at: string | null; slug: string }>();
+  ).bind(await sha256(token)).first<{ id: string; workspace_id: string; email: string; role: string; expires_at: string; accepted_at: string | null; slug: string }>();
   if (!invite) return c.json({ error: "Invitation not found" }, 404);
   if (invite.expires_at < new Date().toISOString()) return c.json({ error: "Invitation has expired" }, 410);
   if (invite.accepted_at) return c.json({ error: "Invitation already accepted" }, 410);
+  if (invite.email.toLowerCase() !== session.email.toLowerCase()) return c.json({ error: "This invitation belongs to another email address" }, 403);
 
   const member = await c.env.DB.prepare("SELECT 1 FROM memberships WHERE workspace_id = ? AND user_id = ?").bind(invite.workspace_id, session.user_id).first();
   if (!member) {
@@ -136,8 +140,12 @@ members.delete("/:userId", async (c) => {
   if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
   const userId = c.req.param("userId");
   if (userId === session.user_id) return c.json({ error: "You cannot remove yourself" }, 400);
-  const { results } = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM memberships WHERE workspace_id = ? AND role = 'owner'").bind(session.workspace_id).all<{ n: number }>();
-  if ((results[0]?.n ?? 0) <= 1) return c.json({ error: "Workspace must keep at least one owner" }, 400);
+  const member = await c.env.DB.prepare("SELECT role FROM memberships WHERE workspace_id = ? AND user_id = ?").bind(session.workspace_id, userId).first<{ role: string }>();
+  if (!member) return c.json({ error: "Member not found" }, 404);
+  if (member.role === "owner") {
+    const { results } = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM memberships WHERE workspace_id = ? AND role = 'owner'").bind(session.workspace_id).all<{ n: number }>();
+    if ((results[0]?.n ?? 0) <= 1) return c.json({ error: "Workspace must keep at least one owner" }, 400);
+  }
   await c.env.DB.prepare("DELETE FROM memberships WHERE workspace_id = ? AND user_id = ?").bind(session.workspace_id, userId).run();
   return c.json({ data: { ok: true } });
 });
