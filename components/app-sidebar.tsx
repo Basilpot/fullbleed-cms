@@ -11,7 +11,6 @@ import {
   LucideLayers,
   LucideNewspaper,
   LucideRedo2,
-  LucideStore,
   LucideTag,
   LucideUsers,
   type LucideIcon,
@@ -52,12 +51,10 @@ const SECONDARY_NAV: {
 
 export function AppSidebar({
   workspaceSlug,
-  companyName,
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   workspaceSlug: string
-  companyName?: string
   user?: { name: string; email: string }
 }) {
   const base = `/workspace/${workspaceSlug}`
@@ -69,14 +66,11 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href={`${base}/dashboard`}>
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <LucideStore className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">
-                    {companyName ?? "Fullbleed"}
-                  </span>
-                </div>
+                <img
+                  src="/fullbleed-logo.svg"
+                  alt="Fullbleed"
+                  className="h-7 w-auto"
+                />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

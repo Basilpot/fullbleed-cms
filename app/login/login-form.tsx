@@ -71,9 +71,13 @@ export function LoginForm({
         <CardHeader className="flex flex-col items-center gap-2 text-center pb-2">
           <Link
             href="/"
-            className="flex flex-row items-center gap-2 font-medium"
+            className="flex flex-row items-center gap-2"
           >
-            <span>Fullbleed</span>
+            <img
+              src="/fullbleed-logo.svg"
+              alt="Fullbleed"
+              className="h-8 w-auto"
+            />
           </Link>
           <CardTitle className="text-xl">Login to your account</CardTitle>
         </CardHeader>
