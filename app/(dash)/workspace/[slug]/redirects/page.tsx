@@ -262,11 +262,11 @@ export default function RedirectsManager() {
             </div>
           </div>
           <SheetFooter>
-            <Button variant="ghost" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
+            </Button>
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>
+              Cancel
             </Button>
           </SheetFooter>
         </SheetContent>

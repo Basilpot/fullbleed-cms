@@ -424,10 +424,10 @@ export default function MediaLibraryPage() {
             </div>
           )}
           <SheetFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
             </Button>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>

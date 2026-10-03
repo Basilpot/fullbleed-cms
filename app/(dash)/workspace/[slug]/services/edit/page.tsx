@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/image-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScanSearch } from "lucide-react";
+import { FileChartPie } from "lucide-react";
 import { useCallback, useEffect, useState, Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -185,8 +185,18 @@ const InfoPageFormInner = () => {
           </h2>
           <div className="btn-group flex gap-1 justify-center items-center">
             <Button
+              size="icon"
+              variant="secondary"
+              type="button"
+              aria-label="SEO settings"
+              title="SEO settings"
+              onClick={() => setShowSEOFields(true)}
+            >
+              <FileChartPie />
+            </Button>
+            <Button
               size="lg"
-              variant="ghost"
+              variant="secondary"
               type="button"
               onClick={() => router.back()}
             >
@@ -194,15 +204,6 @@ const InfoPageFormInner = () => {
             </Button>
             <Button type="submit" size="lg" disabled={isLoading}>
               {isLoading ? "Saving..." : "Save"}
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              type="button"
-              onClick={() => setShowSEOFields(true)}
-            >
-              <ScanSearch />
-              SEO
             </Button>
           </div>
         </div>

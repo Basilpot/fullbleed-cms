@@ -207,9 +207,6 @@ export function AddMediaUrlSheet({ open, onOpenChange, onSuccess }: AddMediaUrlS
         </div>
 
         <SheetFooter>
-          <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }} className="rounded-full border-[#ebebeb]">
-            Cancel
-          </Button>
           <Button onClick={handleSubmit} disabled={saving} className="rounded-full bg-[#171717] text-white hover:bg-[#171717]/90">
             {saving ? (
               <>
@@ -219,6 +216,9 @@ export function AddMediaUrlSheet({ open, onOpenChange, onSuccess }: AddMediaUrlS
             ) : (
               "Add to Library"
             )}
+          </Button>
+          <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }} className="rounded-full border-[#ebebeb]">
+            Cancel
           </Button>
         </SheetFooter>
       </SheetContent>
