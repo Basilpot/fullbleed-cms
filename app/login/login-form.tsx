@@ -13,7 +13,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type FormValues = {
   email: string;
@@ -23,7 +22,7 @@ type FormValues = {
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"form">) {
   const { register, handleSubmit } = useForm<FormValues>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,58 +62,54 @@ export function LoginForm({
   }
 
   return (
-    <div
-      className={cn("flex flex-col items-center gap-6 w-full max-w-sm", className)}
+    <form
       {...props}
+      onSubmit={handleSubmit(onSubmit)}
+      className={cn("flex w-full max-w-sm flex-col gap-6", className)}
     >
-      <Card className="w-full">
-        <CardHeader className="flex flex-col items-center gap-2 text-center pb-2">
-          <Link
-            href="/"
-            className="flex flex-row items-center gap-2"
-          >
-            <img
-              src="/fullbleed-logo.svg"
-              alt="Fullbleed"
-              className="h-8 w-auto"
-            />
-          </Link>
-          <CardTitle className="text-xl">Login to your account</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  {...register("email")}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  {...register("password")}
-                />
-              </Field>
-              <Field>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Login"}
-                </Button>
-              </Field>
-            </FieldGroup>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            New to Fullbleed? <Link className="text-primary underline" href="/signup">Create workspace</Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-balance text-sm text-muted-foreground">
+          Sign in to your Fullbleed workspace
+        </p>
+      </div>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="m@example.com"
+            required
+            {...register("email")}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            {...register("password")}
+          />
+        </Field>
+        <Field>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign in"}
+          </Button>
+        </Field>
+      </FieldGroup>
+      <p className="text-center text-sm text-muted-foreground">
+        New to Fullbleed?{" "}
+        <Link
+          className="text-foreground underline underline-offset-4"
+          href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
+        >
+          Create a workspace
+        </Link>
+      </p>
+    </form>
   );
 }
