@@ -80,7 +80,10 @@ function InviteContent() {
                 </Link>
               </p>
               <p className="text-center text-xs text-muted-foreground">
-                New to Fullbleed? <Link className="text-primary underline" href="/signup">Create an account</Link>
+                New to Fullbleed?{" "}
+                <Link className="text-primary underline" href={`/signup?next=${encodeURIComponent(`/invite/${token}`)}`}>
+                  Create an account
+                </Link>
               </p>
             </>
           )}

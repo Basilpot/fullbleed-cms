@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { sha256 } from "@/lib/server/auth";
 import { sendInviteEmail } from "@/lib/server/email";
 import { workspaceFor } from "./workspace";
@@ -10,9 +11,21 @@ function randomToken(prefix: string) {
   return `${prefix}${crypto.randomUUID().replaceAll("-", "")}`;
 }
 
+const DEFAULT_MEMBER_LIMIT = 5;
+
+async function memberLimit(c: Context<ApiEnv>, workspaceId: string) {
+  const row = await c.env.DB.prepare("SELECT member_limit FROM workspaces WHERE id = ?").bind(workspaceId).first<{ member_limit: number }>();
+  return row?.member_limit ?? DEFAULT_MEMBER_LIMIT;
+}
+
+async function memberCount(c: Context<ApiEnv>, workspaceId: string) {
+  const { results } = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM memberships WHERE workspace_id = ?").bind(workspaceId).all<{ n: number }>();
+  return results[0]?.n ?? 0;
+}
+
 // List members + pending invitations
 members.get("/", async (c) => {
-  const session = await workspaceFor(c);
+  const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
 
   const memberRows = await c.env.DB.prepare(
@@ -36,34 +49,42 @@ members.get("/", async (c) => {
 
 // Invite a member by email (they accept via the shared link, no mailer)
 members.post("/", async (c) => {
-  const session = await workspaceFor(c);
+  const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
 
   const body = await c.req.json().catch(() => null) as { email?: string } | null;
   const email = body?.email?.trim().toLowerCase();
   if (!email) return c.json({ error: "Email is required" }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: "Enter a valid email address" }, 400);
 
-  const { results: memberCount } = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM memberships WHERE workspace_id = ?").bind(session.workspace_id).all<{ n: number }>();
-  const limitRow = await c.env.DB.prepare("SELECT member_limit FROM workspaces WHERE id = ?").bind(session.workspace_id).first<{ member_limit: number }>();
-  const limit = limitRow?.member_limit ?? 2;
-  if ((memberCount[0]?.n ?? 0) >= limit) return c.json({ error: `Member limit of ${limit} reached` }, 400);
+  const limit = await memberLimit(c, session.workspace_id);
+  if (await memberCount(c, session.workspace_id) >= limit) return c.json({ error: `Member limit of ${limit} reached` }, 400);
 
   const token = randomToken("kb_inv_");
   const expiresAt = new Date(Date.now() + 7 * 86_400_000).toISOString();
   await c.env.DB.prepare(
-    "DELETE FROM invitations WHERE workspace_id = ? AND email = ? AND accepted_at IS NULL AND expires_at <= CURRENT_TIMESTAMP",
+    "DELETE FROM invitations WHERE workspace_id = ? AND email = ? AND accepted_at IS NULL AND datetime(expires_at) <= CURRENT_TIMESTAMP",
   ).bind(session.workspace_id, email).run();
   try {
     await c.env.DB.prepare(
       "INSERT INTO invitations (id, workspace_id, email, role, token_hash, expires_at) VALUES (?, ?, ?, 'editor', ?, ?)",
     ).bind(crypto.randomUUID(), session.workspace_id, email, await sha256(token), expiresAt).run();
-  } catch {
+  } catch (error) {
+    console.error("invite insert failed", error);
     return c.json({ error: "An invitation for this email already exists" }, 409);
   }
+
   const workspace = await c.env.DB.prepare("SELECT name FROM workspaces WHERE id = ?").bind(session.workspace_id).first<{ name: string }>();
-  sendInviteEmail(email, workspace?.name ?? "your workspace", `${c.env.APP_URL}/invite/${token}`).catch((error) => console.error("invite email failed", error));
-  return c.json({ data: { token, email, expiresAt } }, 201);
+  // Awaited on purpose: a floating promise here gets dropped when the worker returns 201.
+  let emailError: string | null = null;
+  try {
+    await sendInviteEmail(email, workspace?.name ?? "your workspace", `${c.env.APP_URL}/invite/${token}`);
+  } catch (error) {
+    emailError = error instanceof Error ? error.message : String(error);
+    console.error("invite email failed", emailError);
+  }
+  return c.json({ data: { token, email, expiresAt, emailed: !emailError, emailError } }, 201);
 });
 
 // Public: invitation metadata for the accept page
@@ -77,7 +98,8 @@ members.get("/invitations/:token", async (c) => {
   return c.json({ data: { email: row.email, role: row.role, expiresAt: row.expires_at, acceptedAt: row.accepted_at, workspaceName: row.workspace_name } });
 });
 
-// Logged-in user accepts an invitation and joins the workspace
+// Logged-in user accepts an invitation and joins the workspace.
+// Deliberately unscoped: the invitee is not a member of the target workspace yet.
 members.post("/accept", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "You need to be logged in to accept" }, 401);
@@ -92,25 +114,28 @@ members.post("/accept", async (c) => {
      WHERE invitations.token_hash = ?`,
   ).bind(await sha256(token)).first<{ id: string; workspace_id: string; email: string; role: string; expires_at: string; accepted_at: string | null; slug: string }>();
   if (!invite) return c.json({ error: "Invitation not found" }, 404);
-  if (invite.expires_at < new Date().toISOString()) return c.json({ error: "Invitation has expired" }, 410);
+  if (new Date(invite.expires_at) < new Date()) return c.json({ error: "Invitation has expired" }, 410);
   if (invite.accepted_at) return c.json({ error: "Invitation already accepted" }, 410);
   if (invite.email.toLowerCase() !== session.email.toLowerCase()) return c.json({ error: "This invitation belongs to another email address" }, 403);
 
   const member = await c.env.DB.prepare("SELECT 1 FROM memberships WHERE workspace_id = ? AND user_id = ?").bind(invite.workspace_id, session.user_id).first();
   if (!member) {
+    const limit = await memberLimit(c, invite.workspace_id);
+    if (await memberCount(c, invite.workspace_id) >= limit) return c.json({ error: `Member limit of ${limit} reached` }, 400);
     try {
       await c.env.DB.prepare("INSERT INTO memberships (workspace_id, user_id, role) VALUES (?, ?, ?)").bind(invite.workspace_id, session.user_id, invite.role).run();
-    } catch {
-      return c.json({ error: "Member limit reached" }, 400);
+    } catch (error) {
+      console.error("membership insert failed", error);
+      return c.json({ error: "Could not join the workspace" }, 400);
     }
   }
-  await c.env.DB.prepare("UPDATE invitations SET accepted_at = CURRENT_TIMESTAMP WHERE id = ?").bind(invite.id).run();
+  await c.env.DB.prepare("UPDATE invitations SET accepted_at = ? WHERE id = ?").bind(new Date().toISOString(), invite.id).run();
   return c.json({ data: { workspace: { slug: invite.slug } } });
 });
 
 // Owner-only actions
 members.delete("/invitations/:id", async (c) => {
-  const session = await workspaceFor(c);
+  const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
   await c.env.DB.prepare("DELETE FROM invitations WHERE id = ? AND workspace_id = ?").bind(c.req.param("id"), session.workspace_id).run();
@@ -118,7 +143,7 @@ members.delete("/invitations/:id", async (c) => {
 });
 
 members.patch("/:userId", async (c) => {
-  const session = await workspaceFor(c);
+  const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
   const userId = c.req.param("userId");
@@ -135,7 +160,7 @@ members.patch("/:userId", async (c) => {
 });
 
 members.delete("/:userId", async (c) => {
-  const session = await workspaceFor(c);
+  const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
   const userId = c.req.param("userId");

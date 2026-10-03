@@ -53,9 +53,13 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 
 - Login/signup/logout are **Next route handlers** (`app/api/auth/*`) using real
   password hashing (`lib/server/auth.ts`) and a `fullbleed_session` cookie.
-- Every other API validates the session, then resolves the **current workspace**
-  = the caller's **most recent** `memberships` row (`created_at DESC, rowid DESC
-  LIMIT 1`). Invited editors land on the workspace they were invited to.
+- Every other API validates the session, then resolves the **current workspace**:
+  `workspaceFor(c, slug?)` / `sessionFor(token, slug?)` take an optional workspace
+  slug, and fall back to the caller's **most recent** `memberships` row
+  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted — that is where a
+  freshly accepted invite lands. The dashboard layout re-resolves scoped to its
+  own `[slug]`, so members of several workspaces are not bounced to their newest
+  one.
 - Suspended users (`users.disabled_at` set) are rejected at login (403) **and**
   their existing sessions stop resolving workspaces.
 - Roles: `owner` (full CRUD + member management) and `editor` (content only).
@@ -67,16 +71,27 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - A top-level next-page loads the workspace, then a `/workspace/[slug]` group
   contains dashboard, posts/pages, media, members, etc. The sidebar routes live
   in `components/app-sidebar.tsx`.
-- `/api/members` (file `api/team.ts`):
+- `/api/members` (file `api/team.ts`). Every route except `/accept` accepts
+  `?workspace=<slug>` to scope to a specific workspace:
   - `GET /` → members + pending invitations.
   - `POST /` `{email}` → creates a 7-day invitation; returns the one-time
     `token`. **Token is only shown once** (DB stores its SHA-256 hash) — there
     is intentionally no "resend".
+    The response also carries `emailed` / `emailError`: the send is **awaited**
+    (a floating promise is dropped once the worker returns) and Resend resolves
+    with `{ data: null, error }` rather than throwing. A failed send still
+    returns the token, and the Members page renders the link on screen so the
+    invite is never lost.
   - `GET /invitations/:token` → public metadata for the invite screen,
     `/invite/[token]`.
   - `POST /accept` `{token}` → joins the workspace (creates membership).
+    Deliberately unscoped — the invitee is not a member of the target workspace
+    yet. `/invite/[token]` carries its token into `/signup?next=…` and
+    `/login?next=…`, so a brand-new account lands back on the invite.
   - Owner-only: `PATCH /:userId` role changes, `DELETE /:userId`, and
     `DELETE /invitations/:id`. Last-owner/self-demote/self-remove are blocked.
+- `workspaces.member_limit` (5) caps members, enforced at both invite and
+  accept time.
 
 ## /admin (platform admin)
 
@@ -104,9 +119,9 @@ CORS is per-origin via `allowed_origins`. Full route list in `api/README.md`.
 | API resolution | `app/api/**` routes + catch-all, served by the vinext/vite dev server | the compiled Worker |
 | Storage | local D1 via wrangler (`pnpm exec wrangler d1 migrations apply fullbleed --local`) | remote D1/R2 |
 
-Both run the **same** `api/app.ts`. The production path is proven by the E2E
-script (`/tmp/fullbleed-members-test.sh` → `pnpm build && pnpm start`, read the
-port from `/tmp/fullbleed-wrangler.log`, run with `BASE=http://localhost:<port>/api`).
+Both run the **same** `api/app.ts`. The production path is proven by
+`scripts/members-check.sh` and `scripts/media-check.sh` — point either at the
+reported port (`./scripts/members-check.sh http://localhost:<port>`).
 
 ## Dev server gotchas
 
@@ -131,7 +146,7 @@ port from `/tmp/fullbleed-wrangler.log`, run with `BASE=http://localhost:<port>/
 
 1. Edit code, then `pnpm exec eslint <files>` (0 errors required; old warnings OK).
 2. `pnpm build` (import errors here are real).
-3. `pnpm start`, then run `/tmp/fullbleed-members-test.sh` against the reported port.
+3. `pnpm start`, then run `./scripts/members-check.sh http://localhost:<port>`.
 4. Confirm the affected page in `pnpm dev` (restart it if you renamed/moved files).
 5. Migrations: write `migrations/NNNN_name.sql`, apply with
    `pnpm exec wrangler d1 migrations apply fullbleed --local`.

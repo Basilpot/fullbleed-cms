@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     await env.DB.batch([
       env.DB.prepare("INSERT INTO users (id, email, name, password_hash, email_verified_at, is_platform_admin) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)").bind(userId, email, name, await hashPassword(password), admin),
-      env.DB.prepare("INSERT INTO workspaces (id, name, slug) VALUES (?, ?, ?)").bind(workspaceId, workspaceName, slug),
+      env.DB.prepare("INSERT INTO workspaces (id, name, slug, member_limit) VALUES (?, ?, ?, 5)").bind(workspaceId, workspaceName, slug),
       env.DB.prepare("INSERT INTO memberships (workspace_id, user_id, role) VALUES (?, ?, 'owner')").bind(workspaceId, userId),
     ]);
   } catch (error) {

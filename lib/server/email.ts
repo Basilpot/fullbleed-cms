@@ -1,19 +1,16 @@
 import { Resend } from "resend";
 import { env } from "cloudflare:workers";
 
-const SUBJECT_PREFIX = "Tej from Fullbleed - ";
-
 async function send(subject: string, to: string, html: string, text: string) {
-  if (!env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not set; skipping email to", to);
-    return;
-  }
-  await new Resend(env.RESEND_API_KEY).emails.send({ from: env.RESEND_FROM, to, subject, html, text });
+  if (!env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is not set");
+  // Resend resolves with { data: null, error } on API failures instead of throwing.
+  const { error } = await new Resend(env.RESEND_API_KEY).emails.send({ from: env.RESEND_FROM, to, subject, html, text });
+  if (error) throw new Error(`Resend ${error.name}: ${error.message}`);
   console.log("email sent", { to, subject });
 }
 
 export async function sendInviteEmail(to: string, workspaceName: string, inviteUrl: string) {
-  const subject = `${SUBJECT_PREFIX}Invitation to ${workspaceName}`;
+  const subject = `Invitation to ${workspaceName}`;
   const text = [
     `You've been invited to join the "${workspaceName}" workspace on Fullbleed.`,
     "",

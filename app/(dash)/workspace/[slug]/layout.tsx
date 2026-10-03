@@ -18,7 +18,10 @@ const AdminDashboardLayout = async ({
   const { slug } = await params;
   const cookieStore = await cookies();
 
-  const session = await sessionFor(cookieStore.get("fullbleed_session")?.value);
+  const token = cookieStore.get("fullbleed_session")?.value;
+  // Scoped first so multi-workspace members can open a workspace that isn't their
+  // newest; unscoped fallback resolves their real workspace instead of /login.
+  const session = (await sessionFor(token, slug)) ?? (await sessionFor(token));
   if (!session) redirect("/login");
   if (session.workspace_slug !== slug) redirect(`/workspace/${session.workspace_slug}/dashboard`);
 

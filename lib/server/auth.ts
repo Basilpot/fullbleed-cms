@@ -42,17 +42,19 @@ export async function createSession(userId: string) {
   return { token, expiresAt };
 }
 
-export async function sessionFor(token?: string) {
+export async function sessionFor(token?: string, slug?: string) {
   if (!token) return null;
+  const scoped = slug?.trim().toLowerCase() || null;
   return env.DB.prepare(`SELECT users.id, users.email, users.name, users.is_platform_admin,
       memberships.workspace_id, workspaces.name AS workspace_name, workspaces.slug AS workspace_slug, memberships.role
     FROM sessions
     JOIN users ON users.id = sessions.user_id
     JOIN memberships ON memberships.user_id = users.id
     JOIN workspaces ON workspaces.id = memberships.workspace_id
-    WHERE sessions.token_hash = ? AND sessions.expires_at > CURRENT_TIMESTAMP AND users.disabled_at IS NULL
+    WHERE sessions.token_hash = ? AND datetime(sessions.expires_at) > CURRENT_TIMESTAMP
+      AND users.disabled_at IS NULL AND (? IS NULL OR workspaces.slug = ?)
     ORDER BY memberships.created_at DESC, memberships.rowid DESC LIMIT 1`)
-    .bind(await sha256(token)).first<Session>();
+    .bind(await sha256(token), scoped, scoped).first<Session>();
 }
 
 export async function deleteSession(token?: string) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,21 @@ type Member = { id: string; name: string; email: string; imageUrl: string | null
 type Invitation = { id: string; email: string; role: string; expiresAt: string; acceptedAt: string | null; createdAt: string };
 
 export default function MembersPage() {
+  const params = useParams();
+  const slug = String(params.slug ?? "");
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [lastInvite, setLastInvite] = useState<{ email: string; link: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const membersUrl = useCallback(
+    (path = "") => `/api/members${path}${path ? "&" : "?"}workspace=${encodeURIComponent(slug)}`,
+    [slug],
+  );
+
   async function load() {
-    const res = await fetch(`/api/members`, { credentials: "include" });
+    const res = await fetch(membersUrl(), { credentials: "include" });
     const data = await res.json();
     if (!res.ok) {
       toast.error(data?.error || "Failed to load members");
@@ -32,7 +41,8 @@ export default function MembersPage() {
   }
 
   useEffect(() => {
-    fetch(`/api/members`, { credentials: "include" })
+    if (!slug) return;
+    fetch(membersUrl(), { credentials: "include" })
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to load members");
@@ -41,12 +51,12 @@ export default function MembersPage() {
       })
       .catch((e: any) => toast.error(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [slug, membersUrl]);
 
   async function invite(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
-    const res = await fetch(`/api/members`, {
+    const res = await fetch(membersUrl(), {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -59,16 +69,23 @@ export default function MembersPage() {
     }
     const token = payload?.data?.token;
     if (token) {
+      const email = payload?.data?.email ?? inviteEmail.trim();
       const link = `${window.location.origin}/invite/${token}`;
-      await navigator.clipboard.writeText(link);
-      toast.success("Invite created. Link copied to clipboard.");
+      setLastInvite({ email, link });
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch {
+        // Clipboard blocked (insecure context / denied permission) — the link is on screen.
+      }
+      if (payload?.data?.emailed) toast.success("Invite created and emailed.");
+      else toast.warning(payload?.data?.emailError ? `Invite created, but the email failed: ${payload.data.emailError}. Copy the link below.` : "Invite created. Copy the link below.");
     }
     setInviteEmail("");
     load();
   }
 
   async function setRole(member: Member, role: "owner" | "editor") {
-    const res = await fetch(`/api/members/${member.id}`, {
+    const res = await fetch(membersUrl(`/${member.id}`), {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -85,7 +102,7 @@ export default function MembersPage() {
 
   async function removeMember(member: Member) {
     if (!confirm(`Remove ${member.name} from this workspace?`)) return;
-    const res = await fetch(`/api/members/${member.id}`, { method: "DELETE", credentials: "include" });
+    const res = await fetch(membersUrl(`/${member.id}`), { method: "DELETE", credentials: "include" });
     const payload = await res.json();
     if (!res.ok) {
       toast.error(payload?.error || "Failed to remove member");
@@ -96,7 +113,7 @@ export default function MembersPage() {
   }
 
   async function revokeInvite(invitation: Invitation) {
-    const res = await fetch(`/api/members/invitations/${invitation.id}`, { method: "DELETE", credentials: "include" });
+    const res = await fetch(membersUrl(`/invitations/${invitation.id}`), { method: "DELETE", credentials: "include" });
     if (!res.ok) {
       toast.error("Failed to revoke invite");
       return;
@@ -125,6 +142,13 @@ export default function MembersPage() {
           <Mail /> Send invite
         </Button>
       </form>
+
+      {lastInvite && (
+        <div className="rounded-xl border border-dashed p-4 text-sm">
+          <div className="mb-2 font-medium">Share this link with {lastInvite.email}</div>
+          <code className="block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs break-all">{lastInvite.link}</code>
+        </div>
+      )}
 
       <div className="rounded-xl border">
         <div className="border-b px-4 py-3 text-sm font-medium">Members</div>
