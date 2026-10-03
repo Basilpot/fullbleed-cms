@@ -37,6 +37,7 @@ const AdminDashboardLayout = async ({
     >
       <AppSidebar
         workspaceSlug={slug}
+        workspaceName={session.workspace_name}
         user={{ name: session.name, email: session.email }}
       />
       <SidebarInset className="min-h-screen flex flex-col">

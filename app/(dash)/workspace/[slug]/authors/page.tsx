@@ -22,6 +22,14 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { DataTable } from "@/components/ui/data-table";
 import { TPagination } from "@/app/(dash)/types/pagination";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
@@ -261,20 +269,24 @@ export default function Authors() {
         emptyMessage="No authors found."
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+      <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
               {isEdit ? "Edit Author" : "Add New Author"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               {isEdit
                 ? "Update the author details."
                 : "Create a new author."}
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <form
+            id="author-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          >
             <div className="space-y-2">
               <Label>Profile Image</Label>
               {preview ? (
@@ -359,15 +371,15 @@ export default function Authors() {
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
-
-            <DialogFooter>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
-                {isEdit ? "Update" : "Add"}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter>
+            <Button type="submit" form="author-form" disabled={isSubmitting}>
+              {isEdit ? "Update" : "Add"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>

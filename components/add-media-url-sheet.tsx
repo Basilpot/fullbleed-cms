@@ -6,23 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Link, Loader2, ExternalLink } from "lucide-react";
 import { createMediaFromUrl } from "@/lib/media";
 
-type AddMediaUrlDialogProps = {
+type AddMediaUrlSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 };
 
-export function AddMediaUrlDialog({ open, onOpenChange, onSuccess }: AddMediaUrlDialogProps) {
+export function AddMediaUrlSheet({ open, onOpenChange, onSuccess }: AddMediaUrlSheetProps) {
   const [url, setUrl] = useState("");
   const [filename, setFilename] = useState("");
   const [alt, setAlt] = useState("");
@@ -90,13 +90,13 @@ export function AddMediaUrlDialog({ open, onOpenChange, onSuccess }: AddMediaUrl
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChangeWrapper}>
-      <DialogContent className="sm:max-w-lg rounded-lg">
-        <DialogHeader>
-          <DialogTitle className="text-[#171717]">Insert from URL</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={handleOpenChangeWrapper}>
+      <SheetContent className="sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle className="text-[#171717]">Insert from URL</SheetTitle>
+        </SheetHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4">
           <div className="space-y-1">
             <Label className="text-sm font-medium text-[#171717]">Image URL <span className="text-destructive">*</span></Label>
             <div className="relative">
@@ -206,7 +206,7 @@ export function AddMediaUrlDialog({ open, onOpenChange, onSuccess }: AddMediaUrl
           </div>
         </div>
 
-        <DialogFooter>
+        <SheetFooter>
           <Button variant="outline" onClick={() => { resetForm(); onOpenChange(false); }} className="rounded-full border-[#ebebeb]">
             Cancel
           </Button>
@@ -220,8 +220,8 @@ export function AddMediaUrlDialog({ open, onOpenChange, onSuccess }: AddMediaUrl
               "Add to Library"
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -17,6 +17,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Edit3, LucidePlus, Trash2Icon } from "lucide-react";
@@ -235,20 +243,24 @@ export default function Tags() {
         emptyMessage="No tags yet."
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+      <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>
               {isEdit ? "Edit Tag" : "Add New Tag"}
-            </DialogTitle>
-            <DialogDescription>
+            </SheetTitle>
+            <SheetDescription>
               {isEdit
                 ? "Update the tag details."
                 : "Create a new tag."}
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <form
+            id="tag-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          >
             <div className="space-y-2">
               <Label className="flex gap-4 items-center">Tag Name</Label>
               <Input {...register("name")} required />
@@ -267,15 +279,15 @@ export default function Tags() {
                 placeholder="Add a description for this tag/section."
               />
             </div>
-
-            <DialogFooter>
-              <Button type="submit" size="lg">
-                {isEdit ? "Update" : "Add"}
-              </Button>
-            </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter>
+            <Button type="submit" form="tag-form">
+              {isEdit ? "Update" : "Add"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>

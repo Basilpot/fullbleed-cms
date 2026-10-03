@@ -51,26 +51,28 @@ const SECONDARY_NAV: {
 
 export function AppSidebar({
   workspaceSlug,
+  workspaceName,
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   workspaceSlug: string
+  workspaceName?: string | null
   user?: { name: string; email: string }
 }) {
   const base = `/workspace/${workspaceSlug}`
   const navItems = NAV_ITEMS.map((item) => ({ ...item, url: `${base}/${item.url}` }))
+  const label = workspaceName?.trim() || workspaceSlug
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href={`${base}/dashboard`}>
-                <img
-                  src="/fullbleed-logo.svg"
-                  alt="Fullbleed"
-                  className="h-7 w-auto"
-                />
+              <Link href={`${base}/dashboard`} title={label}>
+                <span className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+                  {label.slice(0, 2).toUpperCase()}
+                </span>
+                <span className="truncate font-semibold">{label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

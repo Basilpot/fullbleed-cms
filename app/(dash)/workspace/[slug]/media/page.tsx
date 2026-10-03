@@ -14,6 +14,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,7 +42,7 @@ import {
 import { listMedia, updateMedia, deleteMedia, uploadMedia, type MediaItem, type Pagination } from "@/lib/media";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
 import { GalleryImage } from "@/components/gallery-image";
-import { AddMediaUrlDialog } from "@/components/add-media-url-dialog";
+import { AddMediaUrlSheet } from "@/components/add-media-url-sheet";
 import { CropDialog } from "@/components/crop-dialog";
 
 export default function MediaLibraryPage() {
@@ -323,13 +330,13 @@ export default function MediaLibraryPage() {
         </>
       )}
 
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-lg rounded-lg">
-          <DialogHeader>
-            <DialogTitle className="text-[#171717]">Edit Image Metadata</DialogTitle>
-          </DialogHeader>
+      <Sheet open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <SheetContent className="sm:max-w-lg">
+          <SheetHeader>
+            <SheetTitle className="text-[#171717]">Edit Image Metadata</SheetTitle>
+          </SheetHeader>
           {editingMedia && (
-            <div className="space-y-4">
+            <div className="flex-1 space-y-4 overflow-y-auto px-4">
               <div className="flex gap-4">
                 <div className="w-32 h-32 rounded-md overflow-hidden border border-[#ebebeb] shrink-0 bg-[#fafafa]">
                   <img
@@ -416,14 +423,14 @@ export default function MediaLibraryPage() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <SheetFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : "Save"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {editingMedia && (
         <CropDialog
@@ -437,7 +444,7 @@ export default function MediaLibraryPage() {
         />
       )}
 
-      <AddMediaUrlDialog
+      <AddMediaUrlSheet
         open={urlDialogOpen}
         onOpenChange={setUrlDialogOpen}
         onSuccess={loadMedia}
