@@ -11,6 +11,7 @@ import {
   LucideLayers,
   LucideNewspaper,
   LucideRedo2,
+  LucideSettings,
   LucideTag,
   LucideUsers,
   type LucideIcon,
@@ -44,10 +45,10 @@ const NAV_ITEMS = [
 ]
 
 const SECONDARY_NAV: {
-  title: string
-  url: string
-  icon: LucideIcon
-}[] = []
+  title: string;
+  url: string;
+  icon: LucideIcon;
+}[] = [{ title: "Settings", url: "settings", icon: LucideSettings }];
 
 export function AppSidebar({
   workspaceSlug,

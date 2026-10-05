@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { publicApi } from "@/lib/server/public-api";
 import { sha256 } from "@/lib/server/auth";
+import { sendInquiryEmail } from "@/lib/server/email";
 import { workspaceFor } from "./workspace";
 import { media } from "./media";
 import { cms } from "./cms";
@@ -52,6 +53,12 @@ api.delete("/inquiries/:id", async (c) => {
   return result.meta.changes ? c.json({ data: { deleted: true } }) : c.json({ error: "Not found" }, 404);
 });
 
+// Enquiry notifications go to the workspace's site-config contact address.
+async function inquiryRecipient(db: D1Database, workspaceId: string) {
+  const row = await db.prepare("SELECT json_extract(config_json, '$.email') AS email FROM site_config WHERE workspace_id = ?").bind(workspaceId).first<{ email: string | null }>();
+  return row?.email?.trim() || null;
+}
+
 api.post("/v1/inquiries", async (c) => {
   const authorization = c.req.header("authorization") ?? "";
   const key = authorization.match(/^Bearer (kb_pub_[A-Za-z0-9_-]+)$/)?.[1];
@@ -65,9 +72,32 @@ api.post("/v1/inquiries", async (c) => {
   }
   const body = await c.req.json().catch(() => null) as { name?: string; email?: string; phone?: string; subject?: string; message?: string } | null;
   if (!body?.name?.trim() || !body.email?.includes("@") || !body.message?.trim()) return c.json({ error: "name, email, and message are required" }, 400);
+  const inquiry = {
+    name: body.name.trim(),
+    email: body.email.trim().toLowerCase(),
+    phone: body.phone?.trim() || null,
+    subject: body.subject?.trim() || null,
+    message: body.message.trim(),
+  };
   await c.env.DB.prepare("INSERT INTO inquiries (id, workspace_id, name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(crypto.randomUUID(), workspace.workspace_id, body.name.trim(), body.email.trim().toLowerCase(), body.phone?.trim() || null, body.subject?.trim() || null, body.message.trim()).run();
-  return c.json({ data: { received: true } }, 201);
+    .bind(crypto.randomUUID(), workspace.workspace_id, inquiry.name, inquiry.email, inquiry.phone, inquiry.subject, inquiry.message).run();
+
+  // Notify the workspace's configured contact address. Awaited on purpose: a
+  // floating promise here gets dropped when the worker returns 201. The
+  // inquiry is already stored, so a mail failure must not fail the request.
+  const recipient = await inquiryRecipient(c.env.DB, workspace.workspace_id);
+  let emailError: string | null = null;
+  if (recipient) {
+    try {
+      await sendInquiryEmail(recipient, inquiry);
+    } catch (error) {
+      emailError = error instanceof Error ? error.message : String(error);
+      console.error("inquiry email failed", emailError);
+    }
+  } else {
+    emailError = "no recipient configured in site settings";
+  }
+  return c.json({ data: { received: true, emailed: Boolean(recipient) && !emailError, emailError } }, 201);
 });
 
 const KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";

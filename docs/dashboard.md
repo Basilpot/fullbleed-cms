@@ -22,6 +22,7 @@ The sidebar groups the workspace's tools:
 | API Access | Create and revoke publishable API keys. |
 | Members | Invite teammates and manage roles (owner vs editor). |
 | Inquiries | Contact-form submissions arriving via the public API. |
+| Settings | Business name, contact details, address, logo and social links for your website. |
 | Redirects | Manage URL redirects that your site resolves through the API. |
 | Authors / Categories / Tags | Taxonomy used by Posts. |
 
@@ -63,6 +64,22 @@ sees that workspace.
 When your website submits a form through the public API (see the
 [Public API guide](public-api.md) → *Inquiries*), the message lands here. Update its
 status (`new` → `read` → `archived`) or delete it.
+
+Each new inquiry is also **emailed to the contact address in Settings**. Leave that
+field blank to keep enquiries in the dashboard only.
+
+## Settings
+
+Business details your website reads through the public API. Owners only — editors can
+view but not save.
+
+- **Business** — name, established year, short description.
+- **Contact** — contact email (also where enquiries are delivered) and WhatsApp number.
+- **Phone numbers**, **Address**, **Opening hours**.
+- **Branding** — website URL, logo, and social links.
+
+Your site fetches these with `GET /api/v1/site-config`; media fields come back as
+absolute URLs on your media domain.
 
 ## API Access
 

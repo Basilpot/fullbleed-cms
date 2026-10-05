@@ -94,11 +94,13 @@ export async function createMediaFromUrl(data: {
 export async function uploadMedia(file: File): Promise<UploadMediaResult> {
   const formData = new FormData();
   formData.append("file", file);
-  return apiFetch<UploadMediaResult>(`${MEDIA_BASE}/upload`, {
+  // The route wraps its payload in `data`; unwrap so callers get the fields directly.
+  const { data } = await apiFetch<{ data: UploadMediaResult }>(`${MEDIA_BASE}/upload`, {
     method: "POST",
     body: formData,
     headers: {},
   });
+  return data;
 }
 
 export async function uploadMultipleMedia(files: File[]): Promise<UploadMediaResult[]> {

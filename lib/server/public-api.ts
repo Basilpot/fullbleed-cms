@@ -16,6 +16,16 @@ function json(data: unknown, status = 200, headers?: HeadersInit) {
   return Response.json(data, { status, headers });
 }
 
+// Config stores media as dashboard-relative URLs ("/api/media-library/file/<key>"),
+// which a storefront can't resolve without a session. Strip the prefix to get the
+// object key, then serve it from the media root like serialize() does for covers.
+function absoluteMedia(value: unknown, mediaUrl: string): unknown {
+  if (typeof value !== "string" || !value) return value;
+  if (/^https?:\/\//i.test(value)) return value;
+  const key = value.replace(/^\/+/, "").replace(/^api\/media-library\/file\//, "");
+  return `${mediaUrl}/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 function apiKey(request: Request) {
   const value = request.headers.get("authorization");
   return value?.match(/^Bearer (kb_pub_[A-Za-z0-9_-]+)$/)?.[1] ?? null;
@@ -177,6 +187,10 @@ export async function publicApi(request: Request, path: string[]) {
         .bind(workspace.workspace_id, source).first();
       response = redirect ? json({ data: redirect }) : json({ error: "Not found" }, 404);
     }
+  } else if (resource === "site-config") {
+    const row = await env.DB.prepare("SELECT config_json FROM site_config WHERE workspace_id = ?").bind(workspace.workspace_id).first<{ config_json: string }>();
+    const config = row ? JSON.parse(row.config_json) : {};
+    response = json({ data: { ...config, logo: absoluteMedia(config.logo, workspace.media_url), image: absoluteMedia(config.image, workspace.media_url) } });
   } else response = json({ error: "Not found" }, 404);
 
   headers.forEach((value, key) => response.headers.set(key, value));

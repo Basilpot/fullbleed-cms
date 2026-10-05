@@ -540,6 +540,8 @@ cms.get("/site-config", async (c) => {
 cms.post("/site-config", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
+  // Owners only: this document will hold the workspace's mail credentials.
+  if (session.role !== "owner") return c.json({ error: "Owners only" }, 403);
   const body = await c.req.json().catch(() => null);
   if (!body || typeof body !== "object") return c.json({ message: "Invalid config" }, 400);
   await c.env.DB.prepare("INSERT INTO site_config (workspace_id, config_json, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT (workspace_id) DO UPDATE SET config_json = excluded.config_json, updated_at = CURRENT_TIMESTAMP")

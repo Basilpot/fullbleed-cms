@@ -34,9 +34,10 @@ Local D1: `pnpm exec wrangler d1 migrations apply fullbleed --local`. Note the C
 
 ## Checks
 
-Both scripts need a running server (`pnpm dev`, or `pnpm start` for wrangler on :8787) and drive it over HTTP:
+All scripts need a running server (`pnpm dev`, or `pnpm start` for wrangler on :8787) and drive it over HTTP:
 
 ```sh
 scripts/members-check.sh          # invite path: register -> invite -> email outcome -> accept -> member cap
+scripts/inquiry-check.sh          # public inquiry path: register -> site config -> key -> POST -> email outcome
 scripts/media-check.sh
 ```

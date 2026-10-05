@@ -120,8 +120,9 @@ CORS is per-origin via `allowed_origins`. Full route list in `api/README.md`.
 | Storage | local D1 via wrangler (`pnpm exec wrangler d1 migrations apply fullbleed --local`) | remote D1/R2 |
 
 Both run the **same** `api/app.ts`. The production path is proven by
-`scripts/members-check.sh` and `scripts/media-check.sh` — point either at the
-reported port (`./scripts/members-check.sh http://localhost:<port>`).
+`scripts/members-check.sh`, `scripts/inquiry-check.sh` and `scripts/media-check.sh` —
+point any of them at the reported port
+(`./scripts/inquiry-check.sh http://localhost:<port>`).
 
 ## Dev server gotchas
 

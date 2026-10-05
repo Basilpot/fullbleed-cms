@@ -162,8 +162,27 @@ Accepts JSON:
 Only `name`, `email` and `message` are required (email must contain `@`). If the request
 carries an `Origin`, it must be in the workspace's allowed-origin allowlist.
 
-Success (201) → `{ "data": { "received": true } }`. The message then appears in the
-dashboard under **Inquiries**.
+Success (201) → the message appears in the dashboard under **Inquiries**, and is
+emailed to the workspace's contact address (set under dashboard **Settings** →
+Contact). The response reports whether the email went out:
+
+```json
+{ "data": { "received": true, "emailed": true, "emailError": null } }
+```
+
+`emailed` is `false` with an `emailError` string when no contact address is configured
+or the send failed — the inquiry is still stored either way, so you do not need to
+retry. `reply_to` on the notification is the sender's address, so replying to the email
+answers them directly.
+
+### Site config
+
+`GET /site-config`
+
+Returns the business details set in dashboard **Settings** — name, description, contact
+email, phone numbers, address, opening hours and social links. `logo` and `image` come
+back as absolute URLs on your media domain, so they can be used directly in `<img src>`.
+Returns `{}` when nothing is configured.
 
 ## 5. Example: rendering your blog
 
