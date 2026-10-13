@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 type Notice = {
   id: string;
@@ -28,6 +29,7 @@ export default function AdminNoticesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<Notice | null>(null);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/notices");
@@ -79,7 +81,6 @@ export default function AdminNoticesPage() {
   }
 
   async function remove(notice: Notice) {
-    if (!confirm(`Delete notice “${notice.title}”?`)) return;
     const response = await fetch(`/api/admin/notices/${notice.id}`, { method: "DELETE" });
     if (!response.ok) return toast.error("Failed to delete notice");
     toast.success("Notice deleted");
@@ -146,12 +147,21 @@ export default function AdminNoticesPage() {
                   <p className="text-sm text-muted-foreground">{notice.message}</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => edit(notice)}>Edit</Button>
-                <Button variant="destructive" size="sm" onClick={() => remove(notice)}>Delete</Button>
+                <Button variant="destructive" size="sm" onClick={() => setDeleting(notice)}>Delete</Button>
               </li>
             ))}
           </ul>
         )}
       </div>
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title={`Delete notice “${deleting?.title ?? ""}”?`}
+        description="The banner is removed from every workspace immediately. This cannot be undone."
+        confirmLabel="Delete notice"
+        pendingLabel="Deleting…"
+        onConfirm={() => deleting && remove(deleting)}
+      />
     </div>
   );
 }

@@ -67,10 +67,19 @@ EXISTING=$(post "$OWNER_COOKIE" "/api/members?workspace=$SLUG" "{\"email\":\"$OT
 check "existing account is linked, not created" "$(echo "$EXISTING" | jq -r '.data.created')" "false"
 check "existing account keeps its password" "$(login /dev/null "$OTHER_EMAIL" check-password-123)" "200"
 
-# 7. a non-member gets nothing, even with a valid session cookie
+# 7. owner changes a role and removes a member (same ?workspace= URL shape the
+#    Members page sends — a "&workspace=" bug once broke both silently)
+MEMBER_ID=$(get "$OWNER_COOKIE" "/api/members?workspace=$SLUG" | jq -r --arg e "$MEMBER_EMAIL" '.data.members[] | select(.email == $e) | .id')
+check "owner promotes member" "$(curl -s -b "$OWNER_COOKIE" -X PATCH "$BASE/api/members/$MEMBER_ID?workspace=$SLUG" -H 'Content-Type: application/json' -d '{"role":"owner"}' | jq -r '.data.ok')" "true"
+check "owner demotes member" "$(curl -s -b "$OWNER_COOKIE" -X PATCH "$BASE/api/members/$MEMBER_ID?workspace=$SLUG" -H 'Content-Type: application/json' -d '{"role":"editor"}' | jq -r '.data.ok')" "true"
+check "owner removes member" "$(curl -s -b "$OWNER_COOKIE" -X DELETE "$BASE/api/members/$MEMBER_ID?workspace=$SLUG" | jq -r '.data.ok')" "true"
+check "removed member loses access" "$(get "$MEMBER_COOKIE" "/api/members?workspace=$SLUG" | jq -r '.error')" "Unauthorized"
+check "removed member can be added back" "$(post "$OWNER_COOKIE" "/api/members?workspace=$SLUG" "{\"email\":\"$MEMBER_EMAIL\"}" | jq -r '.data.created')" "false"
+
+# 8. a non-member gets nothing, even with a valid session cookie
 check "non-member is refused" "$(get "$OWNER_COOKIE" "/api/members?workspace=otherws-$ID" | jq -r '.error')" "Unauthorized"
 
-# 8. the member cap: owner + member + other = 3, fill to 5, then the 6th is refused
+# 9. the member cap: owner + member + other = 3, fill to 5, then the 6th is refused
 CAP=5
 for n in $(seq 4 "$CAP"); do
   FILL=$(post "$OWNER_COOKIE" "/api/members?workspace=$SLUG" \

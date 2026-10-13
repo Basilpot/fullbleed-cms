@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Trash2, Shield, UserPlus, Copy, RefreshCw } from "lucide-react";
 
 type Member = { id: string; name: string; email: string; imageUrl: string | null; role: "owner" | "editor"; createdAt: string };
@@ -32,9 +33,10 @@ export default function MembersPage() {
   const [adding, setAdding] = useState(false);
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [loading, setLoading] = useState(true);
+  const [removing, setRemoving] = useState<Member | null>(null);
 
   const membersUrl = useCallback(
-    (path = "") => `/api/members${path}${path ? "&" : "?"}workspace=${encodeURIComponent(slug)}`,
+    (path = "") => `/api/members${path}?workspace=${encodeURIComponent(slug)}`,
     [slug],
   );
 
@@ -56,7 +58,7 @@ export default function MembersPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to load members");
         setMembers(data?.data?.members ?? []);
-          })
+      })
       .catch((e: any) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [slug, membersUrl]);
@@ -124,7 +126,6 @@ export default function MembersPage() {
   }
 
   async function removeMember(member: Member) {
-    if (!confirm(`Remove ${member.name} from this workspace?`)) return;
     const res = await fetch(membersUrl(`/${member.id}`), { method: "DELETE", credentials: "include" });
     const payload = await res.json();
     if (!res.ok) {
@@ -245,7 +246,7 @@ export default function MembersPage() {
                     <SelectItem value="owner">Owner</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="icon" onClick={() => removeMember(member)} aria-label={`Remove ${member.name}`}>
+                <Button variant="ghost" size="icon" onClick={() => setRemoving(member)} aria-label={`Remove ${member.name}`}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </li>
@@ -253,6 +254,21 @@ export default function MembersPage() {
           </ul>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!removing}
+        onOpenChange={(open) => !open && setRemoving(null)}
+        title={`Remove ${removing?.name ?? "member"}?`}
+        description={
+          <>
+            {removing?.email} will lose access to this workspace immediately. Their account is kept, so you can add them back
+            later.
+          </>
+        }
+        confirmLabel="Remove member"
+        pendingLabel="Removing…"
+        onConfirm={() => removing && removeMember(removing)}
+      />
     </div>
   );
 }
