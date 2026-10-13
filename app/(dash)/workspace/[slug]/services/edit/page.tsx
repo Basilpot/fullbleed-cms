@@ -276,8 +276,11 @@ const InfoPageFormInner = () => {
               <Controller
                 control={control}
                 name="infoPageCategoryId"
+                // Radix reports "" while the options are still loading (its hidden
+                // native <select> has no matching <option> yet); ignore it so the
+                // saved value isn't wiped.
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose category" />
                     </SelectTrigger>

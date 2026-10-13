@@ -310,8 +310,11 @@ const PostFormInner = () => {
               <Controller
                 control={control}
                 name="category"
+                // Radix reports "" while the options are still loading (its hidden
+                // native <select> has no matching <option> yet); ignore it so the
+                // saved value isn't wiped.
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose category" />
                     </SelectTrigger>
@@ -341,7 +344,8 @@ const PostFormInner = () => {
                 render={({ field }) => (
                   <Select
                     value={field.value || "none"}
-                    onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                    // "" comes from Radix while authors load (see Category above); "none" is the explicit clear.
+                    onValueChange={(v) => v && field.onChange(v === "none" ? "" : v)}
                     disabled={!isOwner}
                   >
                     <SelectTrigger id="author" className="w-full">
