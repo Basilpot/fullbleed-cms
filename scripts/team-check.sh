@@ -34,20 +34,20 @@ B=$(register "$B_COOKIE" "B $ID" "team-b-$ID@test.dev" "TeamB $ID")
 [ -n "$A" ] && [ -n "$B" ] || bad "register"
 
 # 1. required fields
-check "missing description rejected" "$(status "$A_COOKIE" "$A" POST /api/team '{"name":"X","role":"Y"}')" 400
+check "missing role rejected" "$(status "$A_COOKIE" "$A" POST /api/team '{"name":"X","description":"Y"}')" 400
 
 # 2. full and minimal members
 FULL=$(json "$A_COOKIE" "$A" POST /api/team '{"name":"Dr. Full","role":"Head of Clinic","profession":"Dentist","qualification":"BDS, MDS","description":"Leads the clinic.","license":"NMC 123","image":"/api/media-library/file/ws/photo.webp"}' | jq -r '.data.id')
 [ -n "$FULL" ] && [ "$FULL" != null ] || bad "create full member"
 ok "create full member"
-MIN=$(json "$A_COOKIE" "$A" POST /api/team '{"name":"Min","role":"Nurse","description":"Cares.","profession":"  "}' | jq -r '.data.id')
+MIN=$(json "$A_COOKIE" "$A" POST /api/team '{"name":"Min","role":"Nurse","profession":"  "}' | jq -r '.data.id')
 LIST=$(as "$A_COOKIE" "$A" "$BASE/api/team")
 check "list count" "$(echo "$LIST" | jq '.pagination.total')" 2
 check "list keeps creation order" "$(echo "$LIST" | jq -r '.data[0].name')" "Dr. Full"
-check "blank optional stored empty" "$(echo "$LIST" | jq -r --arg id "$MIN" '.data[] | select(.id==$id) | .profession + "|" + .license + "|" + .image')" "||"
+check "blank optional stored empty" "$(echo "$LIST" | jq -r --arg id "$MIN" '.data[] | select(.id==$id) | .profession + "|" + .description + "|" + .license + "|" + .image')" "|||"
 
 # 3. update
-check "update" "$(status "$A_COOKIE" "$A" PATCH "/api/team/$MIN" '{"name":"Min","role":"Senior Nurse","description":"Cares.","license":"NNC 9"}')" 200
+check "update" "$(status "$A_COOKIE" "$A" PATCH "/api/team/$MIN" '{"name":"Min","role":"Senior Nurse","license":"NNC 9"}')" 200
 check "update applied" "$(as "$A_COOKIE" "$A" "$BASE/api/team" | jq -r --arg id "$MIN" '.data[] | select(.id==$id) | .role + "|" + .license')" "Senior Nurse|NNC 9"
 
 # 4. isolation: B can't see, edit or delete A's members
@@ -62,7 +62,7 @@ PUB=$(curl -s -H "Authorization: Bearer $KEY" "$BASE/api/v1/team")
 check "public team count" "$(echo "$PUB" | jq '.data | length')" 2
 check "public fields" "$(echo "$PUB" | jq -r '.data[0] | [.name,.role,.profession,.qualification,.description,.license] | join("|")')" "Dr. Full|Head of Clinic|Dentist|BDS, MDS|Leads the clinic.|NMC 123"
 check "public image absolute" "$(echo "$PUB" | jq -r '.data[0].image' | grep -c '^https\?://.*/ws/photo.webp$')" 1
-check "public missing image null" "$(echo "$PUB" | jq -r '.data[1].image')" null
+check "public blank optionals null" "$(echo "$PUB" | jq -r '.data[1] | [.image,.description,.qualification] | map(tostring) | join("|")')" "null|null|null"
 check "public no-store" "$(curl -s -D - -o /dev/null -H "Authorization: Bearer $KEY" "$BASE/api/v1/team" | grep -i '^cache-control' | tr -d '\r' | awk '{print $2}')" no-store
 
 # 6. delete

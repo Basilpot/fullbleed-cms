@@ -100,10 +100,9 @@ type TeamBody = { name?: string; role?: string; profession?: string; qualificati
 function teamFields(body: TeamBody | null) {
   const name = body?.name?.trim();
   const role = body?.role?.trim();
-  const description = body?.description?.trim();
-  if (!name || !role || !description) return null;
+  if (!name || !role) return null;
   const optional = (value?: string) => value?.trim() || null;
-  return [name, role, optional(body?.profession), optional(body?.qualification), description, optional(body?.license), optional(body?.image)];
+  return [name, role, optional(body?.profession), optional(body?.qualification), optional(body?.description), optional(body?.license), optional(body?.image)];
 }
 
 function teamMember(row: Record<string, unknown>) {
@@ -113,7 +112,7 @@ function teamMember(row: Record<string, unknown>) {
     role: row.role,
     profession: row.profession ?? "",
     qualification: row.qualification ?? "",
-    description: row.description,
+    description: row.description ?? "",
     license: row.license ?? "",
     image: row.image_url ?? "",
   };
@@ -139,7 +138,7 @@ cms.post("/team", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const fields = teamFields(await c.req.json().catch(() => null));
-  if (!fields) return c.json({ message: "name, role, and description are required" }, 400);
+  if (!fields) return c.json({ message: "name and role are required" }, 400);
   const id = crypto.randomUUID();
   await c.env.DB.prepare("INSERT INTO team_members (id, workspace_id, name, role, profession, qualification, description, license, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(id, session.workspace_id, ...fields).run();
@@ -150,7 +149,7 @@ cms.patch("/team/:id", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const fields = teamFields(await c.req.json().catch(() => null));
-  if (!fields) return c.json({ message: "name, role, and description are required" }, 400);
+  if (!fields) return c.json({ message: "name and role are required" }, 400);
   const result = await c.env.DB.prepare("UPDATE team_members SET name = ?, role = ?, profession = ?, qualification = ?, description = ?, license = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND workspace_id = ?")
     .bind(...fields, c.req.param("id"), session.workspace_id).run();
   if (!result.meta.changes) return c.json({ message: "Team member not found" }, 404);

@@ -98,6 +98,19 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - `workspaces.member_limit` (5) caps members, enforced on add. The legacy
   `invitations` table is no longer read or written.
 
+### Team profiles (not members)
+
+- Separate from members: `team_members` rows are public staff profiles for the
+  website, not logins (`migrations/0009_team_members.sql`). Page:
+  `app/(dash)/workspace/[slug]/team`.
+- `/api/team` in `api/cms.ts`, workspace-scoped like the rest (owners and editors):
+  `GET /` (paginated, oldest first), `POST /`, `PATCH /:id`, `DELETE /:id`.
+  Body `{name, role, profession?, qualification?, description?, license?, image?}`;
+  `name` and `role` are required, blank optionals are stored as `NULL`. `image` is a
+  media-library URL from the media picker.
+- Public: `GET /api/v1/team` (`lib/server/public-api.ts`), unpaginated, same order;
+  `image` made absolute on the media domain, blank optionals `null`.
+
 ## /admin (platform admin)
 
 - `app/admin/layout.tsx` + `page.tsx` guard `is_platform_admin`; other users get

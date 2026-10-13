@@ -300,16 +300,13 @@ export default function Team() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="team-description">Description</Label>
+              <Label htmlFor="team-description">Description (optional)</Label>
               <Textarea
                 id="team-description"
                 rows={5}
                 placeholder="Short bio shown on the website"
-                {...register("description", { required: "Description is required" })}
+                {...register("description")}
               />
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
             </div>
           </form>
 

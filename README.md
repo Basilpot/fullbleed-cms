@@ -5,7 +5,7 @@ without dragging in a full-scale CMS. Runs as a single Cloudflare Worker with a 
 database and an R2 media bucket.
 
 **Publish web content** — pages and posts with author, category, and tags —
-manage images and redirects, add team members, and
+manage images and redirects, add workspace members, publish team profiles, and
 serve everything to any website through a read-only **public API** authenticated with
 `kb_pub_…` keys.
 
@@ -23,8 +23,10 @@ serve everything to any website through a read-only **public API** authenticated
 - **Pages** and **Posts** content types with SEO metadata and cover media. Services are
   a type of page.
 - **Media library** on object storage with public image URLs
-- **Public JSON API** — published content, taxonomy, redirect resolution, and site
-  config via publishable API keys
+- **Team profiles** — staff shown on your website (name, role, and optional photo,
+  profession, qualification, description, license)
+- **Public JSON API** — published content, taxonomy, team profiles, redirect resolution,
+  and site config via publishable API keys
 - **Platform admin** panel for managing users across workspaces
 - Custom-domain worker and media host; `workers.dev` works too
 

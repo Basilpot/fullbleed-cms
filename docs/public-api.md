@@ -151,7 +151,7 @@ Not paginated.
 } ] }
 ```
 
-`name`, `role` and `description` are always set. `profession`, `qualification`,
+`name` and `role` are always set. `profession`, `qualification`, `description`,
 `license` and `image` are `null` when left blank; `image` is an absolute URL on your
 media domain.
 

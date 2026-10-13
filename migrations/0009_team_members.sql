@@ -7,7 +7,7 @@ CREATE TABLE team_members (
   role TEXT NOT NULL,
   profession TEXT,
   qualification TEXT,
-  description TEXT NOT NULL,
+  description TEXT,
   license TEXT,
   image_url TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
