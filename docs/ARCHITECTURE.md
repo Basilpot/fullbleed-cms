@@ -104,11 +104,17 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
   website, not logins (`migrations/0009_team_members.sql`). Page:
   `app/(dash)/workspace/[slug]/team`.
 - `/api/team` in `api/cms.ts`, workspace-scoped like the rest (owners and editors):
-  `GET /` (paginated, oldest first), `POST /`, `PATCH /:id`, `DELETE /:id`.
+  `GET /` (paginated, by `position`), `POST /` (appends: `MAX(position) + 1`),
+  `PATCH /:id`, `DELETE /:id`, and `PUT /order` `{ids}`, which must list every
+  member of the workspace exactly once (else 409, so a stale page can't scramble the
+  order) and rewrites `position` to each id's index. The page loads up to 100
+  members unpaginated so all of them can be dragged (dnd-kit, keyboard-accessible).
+  `position` column: `migrations/0010_team_member_position.sql` (backfilled by
+  creation order).
   Body `{name, role, profession?, qualification?, description?, license?, image?}`;
   `name` and `role` are required, blank optionals are stored as `NULL`. `image` is a
   media-library URL from the media picker.
-- Public: `GET /api/v1/team` (`lib/server/public-api.ts`), unpaginated, same order;
+- Public: `GET /api/v1/team` (`lib/server/public-api.ts`), unpaginated, by `position` (returned as a field);
   `image` made absolute on the media domain, blank optionals `null`.
 
 ## /admin (platform admin)

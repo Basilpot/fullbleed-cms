@@ -5,6 +5,10 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Team order.** Each team member now has a position (the # column on the Team page).
+  Drag a member by the handle to move them; the order saves straight away and your
+  website gets the team in that order (`position` in `GET /api/v1/team`). New members
+  are added at the end. Existing members keep the order they were added in.
 - **Team.** New **Team** page in the sidebar for the staff profiles shown on your
   website: name and role, plus optional photo, profession, qualification, description
   and license. Add, edit and remove them from the dashboard; websites read them from

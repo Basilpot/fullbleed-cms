@@ -163,7 +163,7 @@ async function taxonomy(workspace: ApiKeyWorkspace, table: "authors" | "categori
 
 async function team(workspace: ApiKeyWorkspace) {
   const { results } = await env.DB.prepare(
-    "SELECT id, name, role, profession, qualification, description, license, image_url FROM team_members WHERE workspace_id = ? ORDER BY created_at, rowid",
+    "SELECT id, position, name, role, profession, qualification, description, license, image_url FROM team_members WHERE workspace_id = ? ORDER BY position, created_at, rowid",
   ).bind(workspace.workspace_id).all<Record<string, unknown>>();
   return json({
     data: results.map(({ image_url, ...member }) => ({ ...member, image: absoluteMedia(image_url, workspace.media_url) ?? null })),

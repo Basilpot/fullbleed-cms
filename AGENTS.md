@@ -40,6 +40,6 @@ All scripts need a running server (`pnpm dev`, or `pnpm start` for wrangler on :
 ```sh
 scripts/members-check.sh          # add-member path: register -> owner creates member -> member logs in -> existing account -> member cap
 scripts/content-check.sh          # two-workspace user: Referer scoping -> dashboard counts -> post tags -> inquiries removed
-scripts/team-check.sh             # team profiles: CRUD -> validation -> workspace isolation -> public /api/v1/team
+scripts/team-check.sh             # team profiles: CRUD -> validation -> workspace isolation -> public /api/v1/team -> position/reorder
 scripts/media-check.sh
 ```

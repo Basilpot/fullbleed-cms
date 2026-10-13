@@ -139,12 +139,13 @@ Authors additionally include `description` (bio) and `image_media_id`.
 
 `GET /team`
 
-Staff profiles managed under **Team** in the dashboard, in the order they were added.
-Not paginated.
+Staff profiles managed under **Team** in the dashboard, sorted by `position` (0 =
+first). Owners and editors set the order by dragging members on the Team page; new
+members are added last. Render them in the order returned. Not paginated.
 
 ```json
 { "data": [ {
-  "id": "…", "name": "Dr. Asha Rai", "role": "Consultant",
+  "id": "…", "position": 0, "name": "Dr. Asha Rai", "role": "Consultant",
   "profession": "Gynaecologist", "qualification": "MBBS, MD",
   "description": "…", "license": "NMC 4455",
   "image": "https://media.example.com/…/asha.webp"

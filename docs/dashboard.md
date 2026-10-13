@@ -24,7 +24,7 @@ The sidebar groups the workspace's tools:
 | Settings | Business name, contact details, address, logo and social links for your website. |
 | Redirects | Manage URL redirects that your site resolves through the API. |
 | Authors / Categories / Tags | Taxonomy used by Posts. |
-| Team | Staff profiles for your website: name and role, plus optional photo, profession, qualification, description and license. Not logins — those are Members. Served at `GET /api/v1/team`. |
+| Team | Staff profiles for your website: name and role, plus optional photo, profession, qualification, description and license. Drag the handle to set each member's position (the # column; 1 shows first). Not logins — those are Members. Served at `GET /api/v1/team` in that order. |
 
 ## Creating and publishing content
 

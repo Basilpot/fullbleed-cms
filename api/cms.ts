@@ -115,6 +115,7 @@ function teamMember(row: Record<string, unknown>) {
     description: row.description ?? "",
     license: row.license ?? "",
     image: row.image_url ?? "",
+    position: Number(row.position ?? 0),
   };
 }
 
@@ -123,7 +124,7 @@ cms.get("/team", async (c) => {
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const { page, limit, offset } = pagination(new URL(c.req.url));
   const [list, count] = await c.env.DB.batch([
-    c.env.DB.prepare("SELECT * FROM team_members WHERE workspace_id = ? ORDER BY created_at, rowid LIMIT ? OFFSET ?")
+    c.env.DB.prepare("SELECT * FROM team_members WHERE workspace_id = ? ORDER BY position, created_at, rowid LIMIT ? OFFSET ?")
       .bind(session.workspace_id, limit, offset),
     c.env.DB.prepare("SELECT COUNT(*) AS total FROM team_members WHERE workspace_id = ?").bind(session.workspace_id),
   ]);
@@ -140,9 +141,30 @@ cms.post("/team", async (c) => {
   const fields = teamFields(await c.req.json().catch(() => null));
   if (!fields) return c.json({ message: "name and role are required" }, 400);
   const id = crypto.randomUUID();
-  await c.env.DB.prepare("INSERT INTO team_members (id, workspace_id, name, role, profession, qualification, description, license, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .bind(id, session.workspace_id, ...fields).run();
+  // New members go to the end of the display order.
+  await c.env.DB.prepare(`INSERT INTO team_members (id, workspace_id, name, role, profession, qualification, description, license, image_url, position)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM team_members WHERE workspace_id = ?))`)
+    .bind(id, session.workspace_id, ...fields, session.workspace_id).run();
   return c.json({ data: { id } }, 201);
+});
+
+// Body { ids }: every team member id of the workspace, in the new display order.
+// A partial or foreign list is rejected so a stale page can't scramble the order.
+cms.put("/team/order", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const body = await c.req.json().catch(() => null) as { ids?: unknown } | null;
+  const ids = Array.isArray(body?.ids) ? body.ids.filter((id): id is string => typeof id === "string") : [];
+  const { results } = await c.env.DB.prepare("SELECT id FROM team_members WHERE workspace_id = ?").bind(session.workspace_id).all<{ id: string }>();
+  const existing = new Set(results.map((row) => row.id));
+  if (ids.length !== existing.size || new Set(ids).size !== ids.length || !ids.every((id) => existing.has(id))) {
+    return c.json({ message: "The team changed since this page loaded. Reload and try again." }, 409);
+  }
+  if (ids.length) {
+    await c.env.DB.batch(ids.map((id, position) =>
+      c.env.DB.prepare("UPDATE team_members SET position = ? WHERE id = ? AND workspace_id = ?").bind(position, id, session.workspace_id)));
+  }
+  return c.json({ data: { ordered: ids.length } });
 });
 
 cms.patch("/team/:id", async (c) => {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Drives the Team (public staff profiles) path: create with required/optional
 # fields -> validation -> update -> workspace isolation -> public /api/v1/team
-# with absolute image URL -> delete.
+# with absolute image URL -> position (append, reorder, validation) -> delete.
 #
 #   pnpm dev                      # then, in another shell:
 #   scripts/team-check.sh
@@ -65,7 +65,23 @@ check "public image absolute" "$(echo "$PUB" | jq -r '.data[0].image' | grep -c 
 check "public blank optionals null" "$(echo "$PUB" | jq -r '.data[1] | [.image,.description,.qualification] | map(tostring) | join("|")')" "null|null|null"
 check "public no-store" "$(curl -s -D - -o /dev/null -H "Authorization: Bearer $KEY" "$BASE/api/v1/team" | grep -i '^cache-control' | tr -d '\r' | awk '{print $2}')" no-store
 
-# 6. delete
+# 6. position: new members append; PUT /order rewrites positions; public follows
+THIRD=$(json "$A_COOKIE" "$A" POST /api/team '{"name":"Third","role":"Admin"}' | jq -r '.data.id')
+check "new member appended last" "$(as "$A_COOKIE" "$A" "$BASE/api/team" | jq -r '[.data[] | "\(.position):\(.name)"] | join(",")')" "0:Dr. Full,1:Min,2:Third"
+# bodies built outside $(...): a literal {a,b} inside it is brace-expanded
+NEW_ORDER=$(jq -nc --arg a "$THIRD" --arg b "$FULL" --arg c "$MIN" '{ids: [$a, $b, $c]}')
+PARTIAL=$(jq -nc --arg a "$FULL" --arg b "$MIN" '{ids: [$a, $b]}')
+DUPES=$(jq -nc --arg a "$FULL" --arg b "$MIN" '{ids: [$a, $a, $b]}')
+check "reorder" "$(status "$A_COOKIE" "$A" PUT /api/team/order "$NEW_ORDER")" 200
+check "dashboard follows position" "$(as "$A_COOKIE" "$A" "$BASE/api/team" | jq -r '[.data[] | "\(.position):\(.name)"] | join(",")')" "0:Third,1:Dr. Full,2:Min"
+check "public follows position" "$(curl -s -H "Authorization: Bearer $KEY" "$BASE/api/v1/team" | jq -r '[.data[] | "\(.position):\(.name)"] | join(",")')" "0:Third,1:Dr. Full,2:Min"
+check "partial order rejected" "$(status "$A_COOKIE" "$A" PUT /api/team/order "$PARTIAL")" 409
+check "duplicate ids rejected" "$(status "$A_COOKIE" "$A" PUT /api/team/order "$DUPES")" 409
+check "other workspace can't reorder" "$(status "$B_COOKIE" "$B" PUT /api/team/order "$NEW_ORDER")" 409
+check "order unchanged after rejects" "$(as "$A_COOKIE" "$A" "$BASE/api/team" | jq -r '[.data[].name] | join(",")')" "Third,Dr. Full,Min"
+json "$A_COOKIE" "$A" DELETE "/api/team/$THIRD" > /dev/null
+
+# 7. delete
 check "delete" "$(status "$A_COOKIE" "$A" DELETE "/api/team/$FULL")" 200
 check "deleted gone from public" "$(curl -s -H "Authorization: Bearer $KEY" "$BASE/api/v1/team" | jq '.data | length')" 1
 

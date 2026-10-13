@@ -2,11 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { Edit3, LucidePlus, Plus, Trash2Icon, X } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
+import { Edit3, GripVertical, LucidePlus, Plus, Trash2Icon, X } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type Modifier,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -21,10 +37,18 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { DataTable, type TPagination } from "@/components/ui/data-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { MediaPicker } from "@/components/media-picker";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
+import { cn } from "@/lib/utils";
 
 type TeamMember = {
   id: string;
@@ -35,9 +59,10 @@ type TeamMember = {
   description: string;
   license: string;
   image: string;
+  position: number;
 };
 
-type TeamForm = Omit<TeamMember, "id" | "image">;
+type TeamForm = Omit<TeamMember, "id" | "image" | "position">;
 
 const EMPTY: TeamForm = {
   name: "",
@@ -48,16 +73,87 @@ const EMPTY: TeamForm = {
   license: "",
 };
 
-// Public staff profiles shown on the website (served at /api/v1/team).
-// Dashboard accounts live on the Members page.
-export default function Team() {
-  const searchParams = useSearchParams();
-  const page = Number(searchParams.get("page") ?? "1");
-  const limit = Number(searchParams.get("limit") ?? "10");
+const verticalOnly: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 
+const dash = <span className="text-muted-foreground">—</span>;
+
+function TeamRow({
+  member,
+  index,
+  onEdit,
+  onDelete,
+}: {
+  member: TeamMember;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: member.id });
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={cn(isDragging && "relative z-10 bg-background shadow-md")}
+    >
+      <TableCell className="w-10">
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          className="flex size-8 cursor-grab touch-none items-center justify-center rounded-sm text-muted-foreground hover:bg-accent hover:text-foreground active:cursor-grabbing"
+          aria-label={`Reorder ${member.name}`}
+        >
+          <GripVertical className="size-4" />
+        </button>
+      </TableCell>
+      <TableCell className="w-10 tabular-nums text-muted-foreground">{index + 1}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-3">
+          {member.image ? (
+            <Image
+              src={getFullImageUrl(member.image)}
+              width={40}
+              height={40}
+              alt={`${member.name}'s photo`}
+              className="size-10 rounded-sm object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="size-10 rounded-sm border" />
+          )}
+          <button
+            type="button"
+            onClick={onEdit}
+            className="cursor-pointer text-left font-medium hover:underline"
+          >
+            {member.name}
+          </button>
+        </div>
+      </TableCell>
+      <TableCell>{member.role}</TableCell>
+      <TableCell>{member.profession || dash}</TableCell>
+      <TableCell>{member.license || dash}</TableCell>
+      <TableCell>
+        <div className="flex gap-4">
+          <Button size="lg" onClick={onEdit}>
+            <Edit3 size={12} /> Edit
+          </Button>
+          <Button size="lg" variant="secondary" onClick={onDelete}>
+            <Trash2Icon size={12} /> Delete
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+// Public staff profiles shown on the website (served at /api/v1/team, in the
+// order set here). Dashboard accounts live on the Members page.
+export default function Team() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState<TPagination>();
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<TeamMember | null>(null);
@@ -72,27 +168,56 @@ export default function Team() {
     formState: { errors, isSubmitting },
   } = useForm<TeamForm>({ defaultValues: EMPTY });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  // One unpaginated list: reordering needs every member on screen. The API
+  // caps a page at 100, plenty for a team page.
   const fetchTeam = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/team?page=${page}&limit=${limit}`, {
+      const res = await fetch("/api/team?limit=100", {
         cache: "no-store",
         credentials: "include",
       });
       if (!res.ok) throw new Error();
       const json = await res.json();
       setTeam(json?.data ?? []);
-      setPagination(json?.pagination);
     } catch {
       toast.error("Failed to load team");
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, []);
 
   useEffect(() => {
     fetchTeam();
   }, [fetchTeam]);
+
+  const onDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const previous = team;
+    const next = arrayMove(
+      team,
+      team.findIndex((member) => member.id === active.id),
+      team.findIndex((member) => member.id === over.id),
+    );
+    setTeam(next);
+    const res = await fetch("/api/team/order", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ ids: next.map((member) => member.id) }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => null);
+      toast.error(json?.message || "Couldn't save the new order");
+      setTeam(previous);
+      if (res.status === 409) fetchTeam();
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -147,57 +272,6 @@ export default function Team() {
     fetchTeam();
   };
 
-  const columns: ColumnDef<TeamMember>[] = [
-    {
-      header: "Member",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          {row.original.image ? (
-            <Image
-              src={getFullImageUrl(row.original.image)}
-              width={40}
-              height={40}
-              alt={`${row.original.name}'s photo`}
-              className="size-10 rounded-sm object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="size-10 rounded-sm border" />
-          )}
-          <button
-            type="button"
-            onClick={() => openEdit(row.original)}
-            className="cursor-pointer text-left font-medium hover:underline"
-          >
-            {row.original.name}
-          </button>
-        </div>
-      ),
-    },
-    { accessorKey: "role", header: "Role" },
-    {
-      header: "Profession",
-      cell: ({ row }) => row.original.profession || <span className="text-muted-foreground">—</span>,
-    },
-    {
-      header: "License",
-      cell: ({ row }) => row.original.license || <span className="text-muted-foreground">—</span>,
-    },
-    {
-      header: "Actions",
-      cell: ({ row }) => (
-        <div className="flex gap-4">
-          <Button size="lg" onClick={() => openEdit(row.original)}>
-            <Edit3 size={12} /> Edit
-          </Button>
-          <Button size="lg" variant="secondary" onClick={() => setDeleting(row.original)}>
-            <Trash2Icon size={12} /> Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div>
       <div className="mb-6">
@@ -212,14 +286,56 @@ export default function Team() {
         </PageHeader>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={team}
-        isLoading={loading}
-        pagination={pagination}
-        searchable={false}
-        emptyMessage="No team members yet."
-      />
+      <div className="overflow-hidden rounded-md border">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[verticalOnly]}
+          onDragEnd={onDragEnd}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">
+                  <span className="sr-only">Reorder</span>
+                </TableHead>
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Profession</TableHead>
+                <TableHead>License</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {team.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    {loading ? "Loading…" : "No team members yet."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <SortableContext items={team.map((member) => member.id)} strategy={verticalListSortingStrategy}>
+                  {team.map((member, index) => (
+                    <TeamRow
+                      key={member.id}
+                      member={member}
+                      index={index}
+                      onEdit={() => openEdit(member)}
+                      onDelete={() => setDeleting(member)}
+                    />
+                  ))}
+                </SortableContext>
+              )}
+            </TableBody>
+          </Table>
+        </DndContext>
+      </div>
+      {team.length > 1 && (
+        <p className="mt-3 text-sm text-muted-foreground">
+          # is the position on your website (1 shows first). Drag the handle to move someone; the new positions save right away.
+        </p>
+      )}
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="sm:max-w-md">
