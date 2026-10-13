@@ -5,6 +5,10 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Lists remember where you were.** Opening an item and coming back (Cancel or Save)
+  used to jump the table back to page 1 and drop the filters. Page, page size, Posts'
+  All/Trash and category filter, and Services' status and category filter now live in
+  the URL and are restored.
 - **Editors keep their category and author.** Opening a service or post and saving it
   wiped the saved category (and the post's author): the dropdown cleared itself while its
   options were still loading. Fixed in both editors.

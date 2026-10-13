@@ -32,10 +32,10 @@ export default function Posts() {
   const page = Number(searchParams.get("page") ?? "1");
   const limit = Number(searchParams.get("limit") ?? "10");
   const [pagination, setPagination] = useState<TPagination>();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const selectedCategory = searchParams.get("category") ?? "all";
   const [categories, setCategories] = useState<BlogCategory[]>([]);
-  // "all" | "trash"
-  const [view, setView] = useState<"all" | "trash">("all");
+  // "all" | "trash" — in the URL with page/limit so returning from an editor restores it.
+  const view: "all" | "trash" = searchParams.get("view") === "trash" ? "trash" : "all";
   // Bumped after a row action (delete/restore) so the list refetches in place.
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -92,17 +92,20 @@ export default function Posts() {
     fetchCategories();
   }, []);
 
-  const handleViewChange = (next: "all" | "trash") => {
-    setView(next);
-    setSelectedCategory("all");
-    router.push("?page=1", { scroll: false });
+  // Trash and category filters are exclusive; switching either keeps limit and
+  // goes back to page 1.
+  const setFilters = (next: { view?: string; category?: string }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("view");
+    params.delete("category");
+    if (next.view && next.view !== "all") params.set("view", next.view);
+    if (next.category && next.category !== "all") params.set("category", next.category);
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleCategoryChange = (categorySlug: string) => {
-    setSelectedCategory(categorySlug);
-    setView("all");
-    router.push("?page=1", { scroll: false });
-  };
+  const handleViewChange = (next: "all" | "trash") => setFilters({ view: next });
+  const handleCategoryChange = (categorySlug: string) => setFilters({ category: categorySlug });
 
   return (
     <div>

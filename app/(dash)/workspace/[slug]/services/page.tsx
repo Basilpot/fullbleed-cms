@@ -28,13 +28,13 @@ export default function InfoPages() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const slug = usePathname().split("/")[2];
-  const [status, setStatus] = useState("all");
+  const status = searchParams.get("status") ?? "all";
   const [infoPages, setInfoPages] = useState<any[]>([]);
   const page = Number(searchParams.get("page") ?? "1");
   const limit = Number(searchParams.get("limit") ?? "10");
   const search = searchParams.get("search") ?? "";
   const [pagination, setPagination] = useState<TPagination>();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const selectedCategory = searchParams.get("category") ?? "all";
   const [categories, setCategories] = useState<InfoPageCategory[]>([]);
   // Bumped after a row action (delete/restore) so the list refetches in place.
   const [reloadKey, setReloadKey] = useState(0);
@@ -90,15 +90,18 @@ export default function InfoPages() {
     fetchCategories();
   }, []);
 
-  const handleStatusChange = (s: string) => {
-    setStatus(s);
-    router.push("?page=1", { scroll: false });
+  // Filters live in the URL (like page/limit) so returning from an editor
+  // restores them. Changing one keeps the other params and goes to page 1.
+  const setFilter = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all") params.delete(key);
+    else params.set(key, value);
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-    router.push("?page=1", { scroll: false });
-  };
+  const handleStatusChange = (s: string) => setFilter("status", s);
+  const handleCategoryChange = (value: string) => setFilter("category", value);
 
   return (
     <div>

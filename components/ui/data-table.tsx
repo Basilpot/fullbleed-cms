@@ -87,6 +87,10 @@ export function DataTable<TData, TValue>({
   );
 
   useEffect(() => {
+    // Only a changed search resets to page 1. Without this check the effect also
+    // fired on mount and pushed ?page=1, so returning from an editor (router.back)
+    // always landed on the first page.
+    if (search.trim() === (new URLSearchParams(window.location.search).get("search") ?? "")) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
