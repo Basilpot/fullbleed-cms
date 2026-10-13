@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { sessionFor } from "@/lib/server/auth";
+import { LAST_WORKSPACE_COOKIE, landingSessionFor } from "@/lib/server/auth";
 import { Button } from "@/components/ui/button";
 import { SiteNav } from "@/components/site-nav";
 
@@ -37,7 +37,10 @@ export default async function DashRedirect({ params }: { params: Promise<{ rest:
   const segments = rest ?? [];
   const cookieStore = await cookies();
   if (segments[0] === "workspace") notFound();
-  const session = await sessionFor(cookieStore.get("fullbleed_session")?.value);
+  const session = await landingSessionFor(
+    cookieStore.get("fullbleed_session")?.value,
+    cookieStore.get(LAST_WORKSPACE_COOKIE)?.value,
+  );
   if (!session) {
     if (segments.length === 0) return <MarketingPage />;
     redirect("/login");

@@ -65,7 +65,17 @@ post "$OTHER_COOKIE" /api/auth/register \
   "{\"name\":\"Other $ID\",\"email\":\"$OTHER_EMAIL\",\"password\":\"check-password-123\",\"workspaceName\":\"OtherWS $ID\"}" > /dev/null
 EXISTING=$(post "$OWNER_COOKIE" "/api/members?workspace=$SLUG" "{\"email\":\"$OTHER_EMAIL\",\"password\":\"ignored-password-123\"}")
 check "existing account is linked, not created" "$(echo "$EXISTING" | jq -r '.data.created')" "false"
-check "existing account keeps its password" "$(login /dev/null "$OTHER_EMAIL" check-password-123)" "200"
+check "existing account keeps its password" "$(login "$OTHER_COOKIE" "$OTHER_EMAIL" check-password-123)" "200"
+check "existing-account response names the workspace" "$(echo "$EXISTING" | jq -r '.data.workspaceName')" "OwnerWS $ID"
+
+# landing after login, for someone who owns OtherWS and was added to OwnerWS:
+# owned workspace first; the last-opened one (cookie) wins; a stale cookie is ignored
+landing() { curl -s -o /dev/null -w '%{redirect_url}' -b "$OTHER_COOKIE" ${2:+-b "fullbleed_workspace=$2"} "$BASE/$1"; }
+check "lands in the workspace they own" "$(landing dashboard)" "$BASE/workspace/otherws-$ID/dashboard"
+check "lands in the last-opened workspace" "$(landing dashboard "$SLUG")" "$BASE/workspace/$SLUG/dashboard"
+check "stale last-workspace cookie is ignored" "$(landing dashboard "gone-$ID")" "$BASE/workspace/otherws-$ID/dashboard"
+# the switcher's workspace list ships in the page payload even while the menu is closed
+check "switcher offers the other workspace" "$(curl -s -b "$OTHER_COOKIE" "$BASE/workspace/$SLUG/dashboard" | grep -q "otherws-$ID" && echo yes || echo no)" "yes"
 
 # 7. owner changes a role and removes a member (same ?workspace= URL shape the
 #    Members page sends — a "&workspace=" bug once broke both silently)

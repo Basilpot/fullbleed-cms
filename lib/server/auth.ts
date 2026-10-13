@@ -42,6 +42,12 @@ export async function createSession(userId: string) {
   return { token, expiresAt };
 }
 
+// Cookie holding the slug of the workspace the browser last opened. Only a
+// hint for where to land after login; membership is always re-checked.
+export const LAST_WORKSPACE_COOKIE = "fullbleed_workspace";
+
+// With `slug`, the session scoped to that workspace (null if not a member).
+// Without it, the default workspace: one the user owns first, newest first.
 export async function sessionFor(token?: string, slug?: string) {
   if (!token) return null;
   const scoped = slug?.trim().toLowerCase() || null;
@@ -53,8 +59,29 @@ export async function sessionFor(token?: string, slug?: string) {
     JOIN workspaces ON workspaces.id = memberships.workspace_id
     WHERE sessions.token_hash = ? AND datetime(sessions.expires_at) > CURRENT_TIMESTAMP
       AND users.disabled_at IS NULL AND (? IS NULL OR workspaces.slug = ?)
-    ORDER BY memberships.created_at DESC, memberships.rowid DESC LIMIT 1`)
+    ORDER BY memberships.role = 'owner' DESC, memberships.created_at DESC, memberships.rowid DESC LIMIT 1`)
     .bind(await sha256(token), scoped, scoped).first<Session>();
+}
+
+// Where to land: the last-opened workspace if still a member, else the default.
+export async function landingSessionFor(token?: string, lastSlug?: string) {
+  return (lastSlug ? await sessionFor(token, lastSlug) : null) ?? sessionFor(token);
+}
+
+export type WorkspaceSummary = { slug: string; name: string; role: "owner" | "editor" };
+
+// Every workspace the session's user belongs to, for the workspace switcher.
+export async function workspacesFor(token?: string) {
+  if (!token) return [];
+  const { results } = await env.DB.prepare(`SELECT workspaces.slug, workspaces.name, memberships.role
+    FROM sessions
+    JOIN users ON users.id = sessions.user_id
+    JOIN memberships ON memberships.user_id = users.id
+    JOIN workspaces ON workspaces.id = memberships.workspace_id
+    WHERE sessions.token_hash = ? AND datetime(sessions.expires_at) > CURRENT_TIMESTAMP AND users.disabled_at IS NULL
+    ORDER BY memberships.role = 'owner' DESC, workspaces.name COLLATE NOCASE`)
+    .bind(await sha256(token)).all<WorkspaceSummary>();
+  return results;
 }
 
 export async function deleteSession(token?: string) {

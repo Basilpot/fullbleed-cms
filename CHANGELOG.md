@@ -5,6 +5,15 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Editors keep their category and author.** Opening a service or post and saving it
+  wiped the saved category (and the post's author): the dropdown cleared itself while its
+  options were still loading. Fixed in both editors.
+- **Workspace switcher.** The sidebar header is now a menu of every workspace you
+  belong to, with your role in each; switching keeps you on the same section. One
+  login per person: if an owner adds an email that already has an account, it keeps its
+  own password and the Members page says so plainly.
+- **Login lands where you expect.** You return to the workspace you last had open. On a
+  fresh browser it is one you own, not whichever workspace added you most recently.
 - **Post authors.** Owners can attach an author to a post from the post editor (Author
   field next to Category). Editors see the author but can't change it; their saves keep
   it. The author shows up in the posts list and in the public API.

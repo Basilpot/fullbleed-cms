@@ -53,8 +53,16 @@ Slugify rules: lowercase, non-alphanumerics become `-`, max 100 chars.
 Go to **Members** to add someone: enter their name, email, a password (one is generated
 for you) and a role. The account is created immediately — no email is sent and they
 don't sign up or create a workspace. Copy the login details shown and share them
-yourself; the member logs in straight into your workspace. If the email already has an
-account, it is added as-is and keeps its existing password. Roles:
+yourself; the member logs in straight into your workspace.
+
+If the email already has a Fullbleed account (for example they run their own
+workspace), they are added as-is: there is one login per person, so they keep their
+own password and the one in the form is ignored. They reach your workspace from the
+**workspace menu** at the top of the sidebar, which lists every workspace they belong
+to with their role. After logging in they land in the workspace they last had open
+(or, the first time, one they own).
+
+Roles:
 
 - **owner** — everything: content, media, members, API access.
 - **editor** — content and media.

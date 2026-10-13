@@ -36,10 +36,10 @@ members.get("/", async (c) => {
   });
 });
 
-// Add a member directly. The owner sets the email + password and shares them
-// out of band: no email, no invite link, and the member never has to sign up
-// or create a workspace of their own. An email that already has an account is
-// just added to this workspace and keeps its existing password.
+// Add a member directly. For a new email the owner sets the password and shares
+// it out of band: no email, no invite link, no signup. An email that already has
+// an account (one login per person) is just added here: it keeps its own
+// password and reaches this workspace through the workspace switcher.
 members.post("/", async (c) => {
   const session = await workspaceFor(c, c.req.query("workspace"));
   if (!session) return c.json({ error: "Unauthorized" }, 401);
@@ -62,7 +62,8 @@ members.post("/", async (c) => {
     const member = await c.env.DB.prepare("SELECT 1 FROM memberships WHERE workspace_id = ? AND user_id = ?").bind(session.workspace_id, existing.id).first();
     if (member) return c.json({ error: "This person is already a member" }, 409);
     await c.env.DB.prepare("INSERT INTO memberships (workspace_id, user_id, role) VALUES (?, ?, ?)").bind(session.workspace_id, existing.id, role).run();
-    return c.json({ data: { id: existing.id, name: existing.name, email, role, created: false } }, 201);
+    const workspace = await c.env.DB.prepare("SELECT name FROM workspaces WHERE id = ?").bind(session.workspace_id).first<{ name: string }>();
+    return c.json({ data: { id: existing.id, name: existing.name, email, role, created: false, workspaceName: workspace?.name ?? null } }, 201);
   }
 
   if (!name) return c.json({ error: "Name is required for a new account" }, 400);

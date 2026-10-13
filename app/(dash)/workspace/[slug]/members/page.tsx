@@ -13,7 +13,8 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Trash2, Shield, UserPlus, Copy, RefreshCw } from "lucide-react";
 
 type Member = { id: string; name: string; email: string; imageUrl: string | null; role: "owner" | "editor"; createdAt: string };
-type Credentials = { name: string; email: string; password: string | null; loginUrl: string };
+// password is null when the email already had an account (it keeps its own).
+type Credentials = { name: string; email: string; password: string | null; loginUrl: string; workspaceName: string | null };
 
 const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
 
@@ -85,6 +86,7 @@ export default function MembersPage() {
       email: payload?.data?.email ?? newEmail.trim(),
       password: created ? newPassword : null,
       loginUrl: `${window.location.origin}/login`,
+      workspaceName: payload?.data?.workspaceName ?? null,
     });
     toast.success(created ? "Account created. Share the login details below." : "Existing account added to this workspace.");
     setNewName("");
@@ -99,7 +101,9 @@ export default function MembersPage() {
     const text = [
       `Login: ${credentials.loginUrl}`,
       `Email: ${credentials.email}`,
-      credentials.password ? `Password: ${credentials.password}` : "Password: your existing Fullbleed password",
+      credentials.password
+        ? `Password: ${credentials.password}`
+        : `Password: your existing Fullbleed password. Then pick ${credentials.workspaceName ?? "this workspace"} from the workspace menu at the top of the sidebar.`,
     ].join("\n");
     try {
       await navigator.clipboard.writeText(text);
@@ -189,14 +193,19 @@ export default function MembersPage() {
           <UserPlus /> {adding ? "Adding…" : "Add member"}
         </Button>
         <p className="w-full text-xs text-muted-foreground">
-          Creates the account and adds it to this workspace — no email is sent. If the email already has an account, it is added with its existing password.
+          Creates a login for a new email and adds it to this workspace — no email is sent. If the email already has a Fullbleed account,
+          they keep their own password (the one above is ignored) and switch to this workspace from the workspace menu.
         </p>
       </form>
 
       {credentials && (
         <div className="rounded-xl border border-dashed p-4 text-sm">
           <div className="mb-2 flex items-center gap-2">
-            <span className="font-medium">Share these login details with {credentials.name || credentials.email}</span>
+            <span className="font-medium">
+              {credentials.password
+                ? `Share these login details with ${credentials.name || credentials.email}`
+                : `${credentials.email} already has a Fullbleed account`}
+            </span>
             <Button variant="ghost" size="sm" className="ml-auto" onClick={copyCredentials}>
               <Copy /> Copy
             </Button>
@@ -207,9 +216,13 @@ export default function MembersPage() {
             <dt className="text-muted-foreground">Email</dt>
             <dd>{credentials.email}</dd>
             <dt className="text-muted-foreground">Password</dt>
-            <dd>{credentials.password ?? "Their existing password"}</dd>
+            <dd>{credentials.password ?? "Their own existing password"}</dd>
           </dl>
-          {credentials.password && <p className="mt-2 text-xs text-muted-foreground">The password is not shown again once you leave this page.</p>}
+          <p className="mt-2 text-xs text-muted-foreground">
+            {credentials.password
+              ? "The password is not shown again once you leave this page."
+              : `No new password was set. After logging in they open ${credentials.workspaceName ?? "this workspace"} from the workspace menu at the top of the sidebar.`}
+          </p>
         </div>
       )}
 

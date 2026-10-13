@@ -55,15 +55,20 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
   password hashing (`lib/server/auth.ts`) and a `fullbleed_session` cookie.
 - Every other API validates the session, then resolves the **current workspace**:
   `workspaceFor(c, slug?)` / `sessionFor(token, slug?)` take an optional workspace
-  slug, and fall back to the caller's **most recent** `memberships` row
-  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted. `workspaceFor`
+  slug, and fall back to the caller's default workspace when it is omitted: one
+  they **own** first, then newest (`role = 'owner' DESC, created_at DESC, rowid
+  DESC LIMIT 1`). `workspaceFor`
   reads the slug from its argument, else `?workspace=`, else the same-origin
   `Referer` (`/workspace/<slug>/…`), so dashboard fetches are scoped to the page
   that issued them without each call passing the slug; membership is still
-  checked. With nothing to go on it falls back — for an account
-  an owner created via Members, that is the owner's workspace. The dashboard layout re-resolves scoped to its
-  own `[slug]`, so members of several workspaces are not bounced to their newest
-  one.
+  checked. The dashboard layout re-resolves scoped to its own `[slug]`, so
+  members of several workspaces are not bounced to their default one.
+- One account per email. Someone in several workspaces switches between them
+  with the sidebar **workspace switcher** (`components/workspace-switcher.tsx`;
+  `workspacesFor(token)` lists their memberships with role). The layout writes
+  the open slug to the `fullbleed_workspace` cookie, and after login
+  `landingSessionFor` lands there if they are still a member, else on the
+  default workspace.
 - Suspended users (`users.disabled_at` set) are rejected at login (403) **and**
   their existing sessions stop resolving workspaces.
 - Roles: `owner` (full CRUD + member management) and `editor` (content only).

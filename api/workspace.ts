@@ -21,7 +21,7 @@ function requestedSlug(c: Context<ApiEnv>) {
 }
 
 // Scopes to `slug`, else to the workspace the request names (see requestedSlug),
-// else falls back to the caller's most recent membership.
+// else falls back to the caller's default workspace (owned first, then newest).
 export async function workspaceFor(c: Context<ApiEnv>, slug?: string) {
   const token = c.req.header("cookie")?.match(/(?:^|;\s*)fullbleed_session=([^;]+)/)?.[1];
   if (!token) return null;
@@ -34,7 +34,7 @@ export async function workspaceFor(c: Context<ApiEnv>, slug?: string) {
      JOIN workspaces ON workspaces.id = memberships.workspace_id
      WHERE sessions.token_hash = ? AND datetime(sessions.expires_at) > CURRENT_TIMESTAMP
        AND users.disabled_at IS NULL AND (? IS NULL OR workspaces.slug = ?)
-     ORDER BY memberships.created_at DESC, memberships.rowid DESC LIMIT 1`,
+     ORDER BY memberships.role = 'owner' DESC, memberships.created_at DESC, memberships.rowid DESC LIMIT 1`,
   )
     .bind(await sha256(token), scoped, scoped)
     .first<{ workspace_id: string; user_id: string; role: "owner" | "editor"; email: string; workspace_slug: string }>();

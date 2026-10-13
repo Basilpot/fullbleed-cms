@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import {
   LucideContact2,
   LucideFolder,
@@ -20,14 +19,12 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { WorkspaceSwitcher, type WorkspaceOption } from "@/components/workspace-switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
@@ -52,31 +49,26 @@ const SECONDARY_NAV: {
 export function AppSidebar({
   workspaceSlug,
   workspaceName,
+  workspaces = [],
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   workspaceSlug: string
   workspaceName?: string | null
+  workspaces?: WorkspaceOption[]
   user?: { name: string; email: string }
 }) {
   const base = `/workspace/${workspaceSlug}`
   const navItems = NAV_ITEMS.map((item) => ({ ...item, url: `${base}/${item.url}` }))
-  const label = workspaceName?.trim() || workspaceSlug
+  const current = workspaces.find((workspace) => workspace.slug === workspaceSlug) ?? {
+    slug: workspaceSlug,
+    name: workspaceName?.trim() || workspaceSlug,
+    role: "editor" as const,
+  }
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href={`${base}/dashboard`} title={label}>
-                <span className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-                  {label.slice(0, 2).toUpperCase()}
-                </span>
-                <span className="truncate font-semibold">{label}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <WorkspaceSwitcher current={current} workspaces={workspaces.length ? workspaces : [current]} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
