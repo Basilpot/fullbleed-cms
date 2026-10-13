@@ -1,7 +1,7 @@
 # Public API & API keys
 
 The public API lets any website read a workspace's published content — posts, pages,
-posts, taxonomy, redirects, site config. It is **read-only**, JSON everywhere, and authenticated with a publishable key.
+posts, taxonomy, team profiles, redirects, site config. It is **read-only**, JSON everywhere, and authenticated with a publishable key.
 
 ## Base URL
 
@@ -134,6 +134,26 @@ Each returns a paginated list, newest published first. Posts support filters.
 ```
 
 Authors additionally include `description` (bio) and `image_media_id`.
+
+### Team
+
+`GET /team`
+
+Staff profiles managed under **Team** in the dashboard, in the order they were added.
+Not paginated.
+
+```json
+{ "data": [ {
+  "id": "…", "name": "Dr. Asha Rai", "role": "Consultant",
+  "profession": "Gynaecologist", "qualification": "MBBS, MD",
+  "description": "…", "license": "NMC 4455",
+  "image": "https://media.example.com/…/asha.webp"
+} ] }
+```
+
+`name`, `role` and `description` are always set. `profession`, `qualification`,
+`license` and `image` are `null` when left blank; `image` is an absolute URL on your
+media domain.
 
 ### Redirects
 

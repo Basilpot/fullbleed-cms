@@ -4,7 +4,7 @@ import { sha256 } from "@/lib/server/auth";
 import { workspaceFor } from "./workspace";
 import { media } from "./media";
 import { cms } from "./cms";
-import { members } from "./team";
+import { members } from "./memberships";
 import { platformAdmin } from "./platform";
 
 export type ApiEnv = {

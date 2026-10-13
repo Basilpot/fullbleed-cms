@@ -161,6 +161,15 @@ async function taxonomy(workspace: ApiKeyWorkspace, table: "authors" | "categori
   return json({ data: results });
 }
 
+async function team(workspace: ApiKeyWorkspace) {
+  const { results } = await env.DB.prepare(
+    "SELECT id, name, role, profession, qualification, description, license, image_url FROM team_members WHERE workspace_id = ? ORDER BY created_at, rowid",
+  ).bind(workspace.workspace_id).all<Record<string, unknown>>();
+  return json({
+    data: results.map(({ image_url, ...member }) => ({ ...member, image: absoluteMedia(image_url, workspace.media_url) ?? null })),
+  });
+}
+
 export async function publicApi(request: Request, path: string[]) {
   if (request.method === "OPTIONS") {
     const headers = await cors(request);
@@ -179,6 +188,7 @@ export async function publicApi(request: Request, path: string[]) {
   else if (resource === "services") response = slug ? await getContent(workspace, "service", slug) : await listContent(url, workspace, "service");
   else if (resource === "posts") response = slug ? await getContent(workspace, "post", slug) : await listContent(url, workspace, "post");
   else if (resource === "authors" || resource === "categories" || resource === "tags") response = await taxonomy(workspace, resource);
+  else if (resource === "team") response = await team(workspace);
   else if (resource === "redirects" && path[1] === "resolve") {
     const source = url.searchParams.get("from");
     if (!source?.startsWith("/")) response = json({ error: "from must be an absolute path" }, 400);

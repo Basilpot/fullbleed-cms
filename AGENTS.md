@@ -14,7 +14,7 @@ Local D1: `pnpm exec wrangler d1 migrations apply fullbleed --local`. Note the C
 ## Architecture
 
 - **One worker serves everything.** There is no separate API server and no dev proxy. `api/app.ts` is a Hono app mounted at `/api`; `app/api/[[...path]]/route.ts` forwards every `/api/*` request into `api.fetch(request, env)`. Dev and prod run the same `api/app.ts`.
-- API route modules: `api/cms.ts`, `api/media.ts`, `api/team.ts` (members), `api/platform.ts` (platform admin), `api/workspace.ts` (`workspaceFor`), plus `lib/server/public-api.ts` for the public `/api/v1/*` storefront API.
+- API route modules: `api/cms.ts`, `api/media.ts`, `api/memberships.ts` (members), `api/platform.ts` (platform admin), `api/workspace.ts` (`workspaceFor`), plus `lib/server/public-api.ts` for the public `/api/v1/*` storefront API.
 - **Auth**: PBKDF2 passwords + `fullbleed_session` cookie (`lib/server/auth.ts`). `sessionFor(token, slug?)` and `workspaceFor(c, slug?)` resolve the caller. One account per email; a person in several workspaces switches with the sidebar **workspace switcher** (`components/workspace-switcher.tsx`, list from `workspacesFor`). With no `slug` they fall back to the caller's default workspace: one they **own** first, then newest (`role = 'owner' DESC, created_at DESC, rowid DESC`). After login, `landingSessionFor` prefers the `fullbleed_workspace` cookie (last-opened slug, written by `components/remember-workspace.tsx`) if still a member. `workspaceFor` takes the slug from its argument, else `?workspace=`, else the same-origin `Referer` (`/workspace/<slug>/…`), so every dashboard fetch is scoped to the workspace page that made it without passing the slug by hand. Membership is still checked. This is how members of several workspaces manage each one.
 - **Roles**: `owner` (full CRUD + member management + post authors) and `editor` (content only; `saveBlog` ignores `authorId` from editors). Platform admins (`users.is_platform_admin`) manage all users from `/admin`; they are not staff accounts.
 - No outbound email. Members are created by owners; there are no invites or inquiries. Never fire work off a floating promise in a worker; `await` it or wrap it in `ctx.waitUntil()`. In-flight promises are dropped once the response returns.
@@ -31,7 +31,7 @@ Local D1: `pnpm exec wrangler d1 migrations apply fullbleed --local`. Note the C
 
 ## Limits
 
-`workspaces.member_limit` caps members (5 via `migrations/0008_member_limit.sql`; new workspaces pass it explicitly in `app/api/auth/register/route.ts` because SQLite can't `ALTER COLUMN … SET DEFAULT`). Enforced when adding a member in `api/team.ts`. There is no billing/plans UI yet.
+`workspaces.member_limit` caps members (5 via `migrations/0008_member_limit.sql`; new workspaces pass it explicitly in `app/api/auth/register/route.ts` because SQLite can't `ALTER COLUMN … SET DEFAULT`). Enforced when adding a member in `api/memberships.ts`. There is no billing/plans UI yet.
 
 ## Checks
 
@@ -40,5 +40,6 @@ All scripts need a running server (`pnpm dev`, or `pnpm start` for wrangler on :
 ```sh
 scripts/members-check.sh          # add-member path: register -> owner creates member -> member logs in -> existing account -> member cap
 scripts/content-check.sh          # two-workspace user: Referer scoping -> dashboard counts -> post tags -> inquiries removed
+scripts/team-check.sh             # team profiles: CRUD -> validation -> workspace isolation -> public /api/v1/team
 scripts/media-check.sh
 ```

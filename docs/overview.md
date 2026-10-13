@@ -29,7 +29,7 @@ Both versions run the exact same codebase and expose the same dashboard and publ
 - **Members** — add teammates to a workspace as editors or owners (you set their login); revoke at any time.
 - **Redirects** — manage URL redirects and resolve them from your site via the API.
 - **Public API** — a read-only JSON API authenticated with `kb_pub_…` publishable keys,
-  for listing pages and posts (plus authors, categories and tags), and resolving redirects.
+  for listing pages and posts (plus authors, categories, tags and team profiles), and resolving redirects.
 - **Platform admin** — on a hosted install, one account can manage all users and
   workspaces.
 

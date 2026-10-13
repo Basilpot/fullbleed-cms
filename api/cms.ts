@@ -92,6 +92,80 @@ cms.delete("/authors/delete/:id", async (c) => {
   return c.json({ data: { deleted: true } });
 });
 
+/* ---------------------------------- Team --------------------------------- */
+// Public staff profiles for the website. Dashboard accounts are /api/members.
+
+type TeamBody = { name?: string; role?: string; profession?: string; qualification?: string; description?: string; license?: string; image?: string };
+
+function teamFields(body: TeamBody | null) {
+  const name = body?.name?.trim();
+  const role = body?.role?.trim();
+  const description = body?.description?.trim();
+  if (!name || !role || !description) return null;
+  const optional = (value?: string) => value?.trim() || null;
+  return [name, role, optional(body?.profession), optional(body?.qualification), description, optional(body?.license), optional(body?.image)];
+}
+
+function teamMember(row: Record<string, unknown>) {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    profession: row.profession ?? "",
+    qualification: row.qualification ?? "",
+    description: row.description,
+    license: row.license ?? "",
+    image: row.image_url ?? "",
+  };
+}
+
+cms.get("/team", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const { page, limit, offset } = pagination(new URL(c.req.url));
+  const [list, count] = await c.env.DB.batch([
+    c.env.DB.prepare("SELECT * FROM team_members WHERE workspace_id = ? ORDER BY created_at, rowid LIMIT ? OFFSET ?")
+      .bind(session.workspace_id, limit, offset),
+    c.env.DB.prepare("SELECT COUNT(*) AS total FROM team_members WHERE workspace_id = ?").bind(session.workspace_id),
+  ]);
+  const total = Number((count.results[0] as { total: number }).total);
+  return c.json({
+    data: (list.results as Record<string, unknown>[]).map(teamMember),
+    pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+  });
+});
+
+cms.post("/team", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const fields = teamFields(await c.req.json().catch(() => null));
+  if (!fields) return c.json({ message: "name, role, and description are required" }, 400);
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare("INSERT INTO team_members (id, workspace_id, name, role, profession, qualification, description, license, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(id, session.workspace_id, ...fields).run();
+  return c.json({ data: { id } }, 201);
+});
+
+cms.patch("/team/:id", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const fields = teamFields(await c.req.json().catch(() => null));
+  if (!fields) return c.json({ message: "name, role, and description are required" }, 400);
+  const result = await c.env.DB.prepare("UPDATE team_members SET name = ?, role = ?, profession = ?, qualification = ?, description = ?, license = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND workspace_id = ?")
+    .bind(...fields, c.req.param("id"), session.workspace_id).run();
+  if (!result.meta.changes) return c.json({ message: "Team member not found" }, 404);
+  return c.json({ data: { updated: true } });
+});
+
+cms.delete("/team/:id", async (c) => {
+  const session = await workspaceFor(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+  const result = await c.env.DB.prepare("DELETE FROM team_members WHERE id = ? AND workspace_id = ?")
+    .bind(c.req.param("id"), session.workspace_id).run();
+  if (!result.meta.changes) return c.json({ message: "Team member not found" }, 404);
+  return c.json({ data: { deleted: true } });
+});
+
 /* ------------------------------- Redirects ------------------------------ */
 
 cms.get("/redirects", async (c) => {

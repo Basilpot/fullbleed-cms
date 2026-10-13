@@ -19,15 +19,17 @@ Next.js route handler: app/api/[[...path]]/route.ts   ← the "catch-all"
 api/app.ts  (mounts all feature routers)
    ├── /auth/*            app/api/auth/*                 (Next route handlers)
    ├── /admin             api/platform.ts    platform admin (users, suspend)
-   ├── /members           api/team.ts        workspace members
+   ├── /members           api/memberships.ts workspace members
+   ├── /team              api/cms.ts         public team profiles
    ├── /blogs /info-page /media-library...    api/cms.ts / api/media.ts
    └── /v1/*              public storefront API (api-key + public pages)
    ▼
 D1 (fullbleed) + R2 (MEDIA)
 ```
 
-> The `api/members.ts` file was renamed to `api/team.ts` (route stays `/api/members`)
-> to dodge a dev-server quirk — see "Dev server gotchas".
+> The members router lives in `api/memberships.ts` (route `/api/members`) to dodge a
+> dev-server quirk — see "Dev server gotchas". It was `api/team.ts` until `/api/team`
+> became the Team profiles route, which that file name then shadowed in dev.
 
 ## Request flow in detail
 
@@ -80,7 +82,7 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - A top-level next-page loads the workspace, then a `/workspace/[slug]` group
   contains dashboard, posts/pages, media, members, etc. The sidebar routes live
   in `components/app-sidebar.tsx`.
-- `/api/members` (file `api/team.ts`). Every route accepts `?workspace=<slug>`
+- `/api/members` (file `api/memberships.ts`). Every route accepts `?workspace=<slug>`
   to scope to a specific workspace:
   - `GET /` → members.
   - `POST /` `{name, email, password, role?}` (owner only) → adds a member
@@ -135,8 +137,8 @@ point any of them at the reported port
   error `Unexpected token 'i', "import { H"... is not valid JSON`. `/api/health`
   and `/api/admin/users` work because no `app/api/health`-or-`api/admin/users.ts`
   file collides. **Workaround:** avoid `api/<segment>.ts` names that equal a
-  public API path. This is why the file is `api/team.ts` but the route is
-  `/api/members`. After renaming, restart `pnpm dev` (vite caches the mapping).
+  public API path. This is why the file is `api/memberships.ts` but the route is
+  `/api/members` (and why it can't be `api/team.ts` now that `/api/team` exists). After renaming, restart `pnpm dev` (vite caches the mapping).
 - **Port 3000 belongs to other projects.** Some setups run unrelated backends on
   :3000; if `/api/*` responses start looking foreign (Express "Cannot GET...",
   `{"site":"localhost"}` health echoes), kill whatever squats on the port —

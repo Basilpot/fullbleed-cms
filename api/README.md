@@ -12,6 +12,7 @@ Hono router lives in [`api/app.ts`](./app.ts). It runs inside same Vinext Worker
 - `GET /api/v1/posts`
 - `GET /api/v1/posts/:slug`
 - `GET /api/v1/authors`
+- `GET /api/v1/team`
 - `GET /api/v1/categories`
 - `GET /api/v1/tags`
 - `GET /api/v1/redirects/resolve?from=/old-path`

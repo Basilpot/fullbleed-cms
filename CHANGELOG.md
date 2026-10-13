@@ -5,6 +5,10 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Team.** New **Team** page in the sidebar for the staff profiles shown on your
+  website: photo, name, role, description, and optional profession, qualification and
+  license. Add, edit and remove them from the dashboard; websites read them from
+  `GET /api/v1/team`. These are profiles, not logins (those stay under Members).
 - **Lists remember where you were.** Opening an item and coming back (Cancel or Save)
   used to jump the table back to page 1 and drop the filters. Page, page size, Posts'
   All/Trash and category filter, and Services' status and category filter now live in
