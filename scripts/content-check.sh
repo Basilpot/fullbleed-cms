@@ -64,7 +64,26 @@ check "tag shows its post count" "$(as "$A_COOKIE" "$A_SLUG" "$BASE/api/tags?lim
 json "$A_COOKIE" "$A_SLUG" PATCH /api/blogs/update/live-post '{"title":"Live post","slug":"live-post","content":"<p>x</p>","published":true,"tags":"News"}' > /dev/null
 check "removing a tag detaches it" "$(as "$A_COOKIE" "$A_SLUG" "$BASE/api/blogs/live-post" | jq -r '.tags')" "News"
 
-# 6. inquiries are gone
+# 6. authors: only owners attach them (A is an editor in workspace B)
+json "$B_COOKIE" "$B_SLUG" POST /api/authors/create '{"name":"Ada Writer","username":"ada-writer","email":"ada@writers.test"}' > /dev/null
+json "$B_COOKIE" "$B_SLUG" POST /api/authors/create '{"name":"Bob Writer","username":"bob-writer","email":"bob@writers.test"}' > /dev/null
+AUTHORS=$(as "$B_COOKIE" "$B_SLUG" "$BASE/api/authors?limit=100")
+ADA=$(echo "$AUTHORS" | jq -r '.data[] | select(.username == "ada-writer") | .id')
+BOB=$(echo "$AUTHORS" | jq -r '.data[] | select(.username == "bob-writer") | .id')
+[ -n "$ADA" ] && [ -n "$BOB" ] || bad "authors created (got: $AUTHORS)"
+json "$B_COOKIE" "$B_SLUG" POST /api/blogs/ "{\"title\":\"Bylined\",\"slug\":\"bylined\",\"content\":\"<p>x</p>\",\"authorId\":\"$ADA\"}" > /dev/null
+check "owner attaches author on create" "$(as "$B_COOKIE" "$B_SLUG" "$BASE/api/blogs/bylined" | jq -r '.author.name')" "Ada Writer"
+json "$A_COOKIE" "$B_SLUG" PATCH /api/blogs/update/bylined "{\"title\":\"Bylined edited\",\"slug\":\"bylined\",\"content\":\"<p>y</p>\",\"authorId\":\"$BOB\"}" > /dev/null
+BYLINED=$(as "$B_COOKIE" "$B_SLUG" "$BASE/api/blogs/bylined")
+check "editor's edit is saved" "$(echo "$BYLINED" | jq -r '.title')" "Bylined edited"
+check "editor cannot change the author" "$(echo "$BYLINED" | jq -r '.author.name')" "Ada Writer"
+json "$B_COOKIE" "$B_SLUG" PATCH /api/blogs/update/bylined "{\"title\":\"Bylined edited\",\"slug\":\"bylined\",\"content\":\"<p>y</p>\",\"authorId\":\"$BOB\"}" > /dev/null
+check "owner changes the author" "$(as "$B_COOKIE" "$B_SLUG" "$BASE/api/blogs/bylined" | jq -r '.author.name')" "Bob Writer"
+check "author from another workspace is refused" "$(json "$A_COOKIE" "$A_SLUG" PATCH /api/blogs/update/live-post "{\"title\":\"Live post\",\"slug\":\"live-post\",\"content\":\"<p>x</p>\",\"published\":true,\"tags\":\"News\",\"authorId\":\"$ADA\"}" | jq -r '.message')" "Author not found"
+json "$B_COOKIE" "$B_SLUG" PATCH /api/blogs/update/bylined '{"title":"Bylined edited","slug":"bylined","content":"<p>y</p>","authorId":null}' > /dev/null
+check "owner clears the author" "$(as "$B_COOKIE" "$B_SLUG" "$BASE/api/blogs/bylined" | jq -r '.author')" "null"
+
+# 7. inquiries are gone
 check "dashboard inquiries API removed" "$(as "$A_COOKIE" "$A_SLUG" -o /dev/null -w '%{http_code}' "$BASE/api/inquiries")" "404"
 check "public inquiries API removed" "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/v1/inquiries" -H 'Content-Type: application/json' -d '{}')" "405"
 

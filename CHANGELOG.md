@@ -5,6 +5,9 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Post authors.** Owners can attach an author to a post from the post editor (Author
+  field next to Category). Editors see the author but can't change it; their saves keep
+  it. The author shows up in the posts list and in the public API.
 - **Dashboard counts fixed.** Services were always 0 (counted the wrong content type),
   pages were counted as posts when there were no posts, and trashed posts were still
   counted.

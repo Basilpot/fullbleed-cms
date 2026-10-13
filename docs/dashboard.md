@@ -30,7 +30,8 @@ The sidebar groups the workspace's tools:
 1. Open **Pages & Posts** and pick a content type (e.g. Posts).
 2. **Create post** — give it a *title*, *slug*, write the body, set the cover image,
    author, category and tags, and fill in the SEO fields (meta title, description,
-   canonical URL).
+   canonical URL). Only **owners** can pick the author (from **Authors**); editors see it
+   read-only, and their edits keep whatever author the owner set.
 3. Save as **draft** to keep it hidden, or **publish** immediately.
 4. Only content with status `published` (and not deleted) is returned by the
    [public API](public-api.md).

@@ -440,12 +440,20 @@ cms.get("/blogs/:slug", async (c) => {
 });
 
 async function saveBlog(c: Context<ApiEnv>, session: Session, slug?: string) {
-  const body = await c.req.json().catch(() => null) as { title?: string; slug?: string; content?: string; coverImage?: string; category?: string | null; metaTitle?: string; metaDescription?: string; tags?: string; published?: boolean; publishedAt?: string } | null;
+  const body = await c.req.json().catch(() => null) as { title?: string; slug?: string; content?: string; coverImage?: string; category?: string | null; metaTitle?: string; metaDescription?: string; tags?: string; published?: boolean; publishedAt?: string; authorId?: string | null } | null;
   const newSlug = slugify(body?.slug ?? "");
   if (!body?.title?.trim() || !newSlug) return c.json({ message: "title is required" }, 400);
   const coverMediaId = await mediaIdFromUrl(c, session.workspace_id, body.coverImage);
   const status = body.published ? "published" : "draft";
   const publishedAt = body.publishedAt && body.published ? body.publishedAt : (body.published ? new Date().toISOString() : null);
+  // Only owners attach authors. An editor's save never touches author_id, so
+  // whatever the owner set survives later content edits.
+  const setsAuthor = session.role === "owner" && body.authorId !== undefined;
+  const authorId = setsAuthor ? body.authorId || null : null;
+  if (authorId) {
+    const author = await c.env.DB.prepare("SELECT 1 FROM authors WHERE id = ? AND workspace_id = ?").bind(authorId, session.workspace_id).first();
+    if (!author) return c.json({ message: "Author not found" }, 400);
+  }
   let id: string;
   if (slug) {
     const row = await c.env.DB.prepare("SELECT id FROM content WHERE workspace_id = ? AND kind = 'post' AND slug = ?").bind(session.workspace_id, slug).first<{ id: string }>();
@@ -453,10 +461,11 @@ async function saveBlog(c: Context<ApiEnv>, session: Session, slug?: string) {
     id = row.id;
     await c.env.DB.prepare("UPDATE content SET title = ?, slug = ?, body_html = ?, cover_media_id = ?, category_id = ?, meta_title = ?, meta_description = ?, status = ?, published_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
       .bind(body.title.trim(), newSlug, body.content ?? "", coverMediaId, body.category || null, body.metaTitle ?? null, body.metaDescription ?? null, status, publishedAt, id).run();
+    if (setsAuthor) await c.env.DB.prepare("UPDATE content SET author_id = ? WHERE id = ?").bind(authorId, id).run();
   } else {
     id = crypto.randomUUID();
-    await c.env.DB.prepare("INSERT INTO content (id, workspace_id, kind, title, slug, body_html, cover_media_id, category_id, meta_title, meta_description, status, published_at) VALUES (?, ?, 'post', ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .bind(id, session.workspace_id, body.title.trim(), newSlug, body.content ?? "", coverMediaId, body.category || null, body.metaTitle ?? null, body.metaDescription ?? null, status, publishedAt).run();
+    await c.env.DB.prepare("INSERT INTO content (id, workspace_id, kind, title, slug, body_html, cover_media_id, category_id, meta_title, meta_description, status, published_at, author_id) VALUES (?, ?, 'post', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(id, session.workspace_id, body.title.trim(), newSlug, body.content ?? "", coverMediaId, body.category || null, body.metaTitle ?? null, body.metaDescription ?? null, status, publishedAt, authorId).run();
   }
   await replaceContentTags(c, id, body.tags);
   return c.json({ data: { saved: true } }, slug ? 200 : 201);

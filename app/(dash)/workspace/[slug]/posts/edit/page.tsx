@@ -40,6 +40,8 @@ type PostCategoryType = {
 
 const PostFormInner = () => {
   const [categories, setCategories] = useState<PostCategoryType[]>([]);
+  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
   const [showSEOFields, setShowSEOFields] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +61,7 @@ const PostFormInner = () => {
         metaTitle: "",
         metaDescription: "",
         tags: "",
+        authorId: "",
         content: "",
         published: false,
         publishedAt: "",
@@ -113,6 +116,7 @@ const PostFormInner = () => {
           metaTitle: post.metaTitle || "",
           metaDescription: post.metaDescription || "",
           tags: post.tags || "",
+          authorId: post.authorId || "",
           coverImage: post.coverImage || "",
           content: post.content || "",
           published: post.published || false,
@@ -133,6 +137,18 @@ const PostFormInner = () => {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+  // Authors to pick from, and whether this user may pick (owners only).
+  useEffect(() => {
+    fetch("/api/authors?limit=100")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => setAuthors(payload?.data ?? []))
+      .catch(() => {});
+    fetch("/api/admin/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => setIsOwner(payload?.data?.admin?.role === "owner"))
+      .catch(() => {});
+  }, []);
 
   // Fetch post data when editing
   useEffect(() => {
@@ -157,6 +173,8 @@ const PostFormInner = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          // Only owners send an author; the API ignores it from editors anyway.
+          authorId: isOwner ? data.authorId || null : undefined,
           content: enrichedContent,
           coverImage,
           category: data.category,
@@ -282,8 +300,8 @@ const PostFormInner = () => {
             </div>
           </div>
 
-          {/* Category + Status */}
-          <div className="grid grid-cols-2 gap-1 w-full my-4">
+          {/* Category + Author + Status */}
+          <div className="grid grid-cols-3 gap-1 w-full my-4">
             {/* Category Dropdown */}
             <div className="flex flex-col gap-1 w-full">
               <Label htmlFor="category" className="font-bold text-sm">
@@ -310,6 +328,42 @@ const PostFormInner = () => {
                   </Select>
                 )}
               />
+            </div>
+
+            {/* Author Dropdown (owners only) */}
+            <div className="flex flex-col gap-1 w-full">
+              <Label htmlFor="author" className="font-bold text-sm">
+                Author
+              </Label>
+              <Controller
+                control={control}
+                name="authorId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                    disabled={!isOwner}
+                  >
+                    <SelectTrigger id="author" className="w-full">
+                      <SelectValue placeholder="No author" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Authors</SelectLabel>
+                        <SelectItem value="none">No author</SelectItem>
+                        {authors.map((author) => (
+                          <SelectItem key={author.id} value={author.id}>
+                            {author.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {!isOwner && (
+                <p className="text-xs text-muted-foreground">Only owners can change the author.</p>
+              )}
             </div>
 
             {/* Status Dropdown */}
