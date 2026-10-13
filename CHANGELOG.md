@@ -5,6 +5,22 @@ Format: `## YYYY-MM-DD` sections with `- bullet` entries.
 
 ## 2026-10-13
 
+- **Dashboard counts fixed.** Services were always 0 (counted the wrong content type),
+  pages were counted as posts when there were no posts, and trashed posts were still
+  counted.
+- **Workspace scoping fixed.** For anyone in more than one workspace, dashboard data
+  (posts, media, counts, …) came from their newest workspace instead of the one open.
+  Every dashboard request is now scoped to the workspace page it comes from.
+- **Tags on posts.** The post editor has a Tags field: pick existing tags or type a new
+  one and press Enter. (The old hidden "Cover Image Alt" field in the SEO panel was
+  secretly writing tags — removed.) The Tags page now shows how many posts use each tag.
+- **Deletes update in place.** Moving a post to trash, restoring it, deleting it for
+  good and deleting a service now refresh the list without a page reload. Permanent
+  deletes and member removal ask for confirmation in a dialog instead of the browser
+  popup.
+- **Inquiries removed.** The Inquiries page, `/api/inquiries`, `POST /api/v1/inquiries`
+  and inquiry emails are gone, along with Resend. Existing rows stay in the database
+  untouched.
 - **Members:** owners now add teammates directly — name, email, password, role. The
   account is created on the spot and the login details are shown to copy and share. No
   invitation email, no invite link, and the member never signs up or creates a

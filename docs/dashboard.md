@@ -21,7 +21,6 @@ The sidebar groups the workspace's tools:
 | Media | Upload images, edit alt text/captions, reuse files in content. |
 | API Access | Create and revoke publishable API keys. |
 | Members | Add teammates (you set their login) and manage roles (owner vs editor). |
-| Inquiries | Contact-form submissions arriving via the public API. |
 | Settings | Business name, contact details, address, logo and social links for your website. |
 | Redirects | Manage URL redirects that your site resolves through the API. |
 | Authors / Categories / Tags | Taxonomy used by Posts. |
@@ -57,19 +56,10 @@ yourself; the member logs in straight into your workspace. If the email already 
 account, it is added as-is and keeps its existing password. Roles:
 
 - **owner** — everything: content, media, members, API access.
-- **editor** — content, media, and inquiries.
+- **editor** — content and media.
 
 Owners can also remove a member to revoke access. Each workspace member's session only
 sees that workspace.
-
-## Inquiries
-
-When your website submits a form through the public API (see the
-[Public API guide](public-api.md) → *Inquiries*), the message lands here. Update its
-status (`new` → `read` → `archived`) or delete it.
-
-Each new inquiry is also **emailed to the contact address in Settings**. Leave that
-field blank to keep enquiries in the dashboard only.
 
 ## Settings
 
@@ -77,7 +67,7 @@ Business details your website reads through the public API. Owners only — edit
 view but not save.
 
 - **Business** — name, established year, short description.
-- **Contact** — contact email (also where enquiries are delivered) and WhatsApp number.
+- **Contact** — contact email and WhatsApp number.
 - **Phone numbers**, **Address**, **Opening hours**.
 - **Branding** — website URL, logo, and social links.
 

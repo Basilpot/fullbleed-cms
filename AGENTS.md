@@ -15,9 +15,9 @@ Local D1: `pnpm exec wrangler d1 migrations apply fullbleed --local`. Note the C
 
 - **One worker serves everything.** There is no separate API server and no dev proxy. `api/app.ts` is a Hono app mounted at `/api`; `app/api/[[...path]]/route.ts` forwards every `/api/*` request into `api.fetch(request, env)`. Dev and prod run the same `api/app.ts`.
 - API route modules: `api/cms.ts`, `api/media.ts`, `api/team.ts` (members), `api/platform.ts` (platform admin), `api/workspace.ts` (`workspaceFor`), plus `lib/server/public-api.ts` for the public `/api/v1/*` storefront API.
-- **Auth**: PBKDF2 passwords + `fullbleed_session` cookie (`lib/server/auth.ts`). `sessionFor(token, slug?)` and `workspaceFor(c, slug?)` resolve the caller. With no `slug` they fall back to the caller's **most recent** `memberships` row (`created_at DESC, rowid DESC`) — for an account an owner created via Members, that is the owner's workspace. With a `slug` they scope to that workspace, which is how members of several workspaces manage each one.
+- **Auth**: PBKDF2 passwords + `fullbleed_session` cookie (`lib/server/auth.ts`). `sessionFor(token, slug?)` and `workspaceFor(c, slug?)` resolve the caller. With no `slug` they fall back to the caller's **most recent** `memberships` row (`created_at DESC, rowid DESC`) — for an account an owner created via Members, that is the owner's workspace. `workspaceFor` takes the slug from its argument, else `?workspace=`, else the same-origin `Referer` (`/workspace/<slug>/…`), so every dashboard fetch is scoped to the workspace page that made it without passing the slug by hand. Membership is still checked. This is how members of several workspaces manage each one.
 - **Roles**: `owner` (full CRUD + member management) and `editor` (content only). Platform admins (`users.is_platform_admin`) manage all users from `/admin`; they are not staff accounts.
-- Email goes out via Resend (`lib/server/email.ts`). **Resend resolves with `{ data: null, error }` instead of throwing** — always check `.error`. Never fire mail off a floating promise in a worker; `await` it or wrap it in `ctx.waitUntil()`. In-flight promises are dropped once the response returns.
+- No outbound email. Members are created by owners; there are no invites or inquiries. Never fire work off a floating promise in a worker; `await` it or wrap it in `ctx.waitUntil()`. In-flight promises are dropped once the response returns.
 - Caching: none server-side. Every `/api/*` response gets `Cache-Control: no-store` (middleware in `api/app.ts`; handlers that set their own, like media files, keep it). Edge cache and the vinext CDN adapter are off. API consumers own their caching.
 - Dates: SQLite `CURRENT_TIMESTAMP` yields `YYYY-MM-DD HH:MM:SS` while JS `toISOString()` yields `YYYY-MM-DDTHH:MM:SSZ`. Compare with `datetime(col)` in SQL, or parse before comparing in JS — never raw string-compare the two formats.
 
@@ -25,7 +25,7 @@ Local D1: `pnpm exec wrangler d1 migrations apply fullbleed --local`. Note the C
 
 - `/login`, `/signup` (public). There is no invite flow: owners create member accounts (email + password) on the Members page and share the credentials themselves; no email is sent.
 - `app/(dash)/[[...rest]]` resolves a bare dashboard path to `/workspace/<slug>/…`.
-- `app/(dash)/workspace/[slug]/` holds dashboard, content, media, members, inquiries, API access. The layout re-resolves the session scoped to `[slug]`, so multi-workspace members are not bounced to their newest workspace.
+- `app/(dash)/workspace/[slug]/` holds dashboard, content, media, members, settings, API access. The layout re-resolves the session scoped to `[slug]`, so multi-workspace members are not bounced to their newest workspace.
 - Sidebar menu is `components/app-sidebar.tsx` (`NAV_ITEMS`) — add new pages there.
 - `docs/ARCHITECTURE.md` is the detailed reference and is accurate; `DESIGN.md` is authoritative for UI work.
 
@@ -39,6 +39,6 @@ All scripts need a running server (`pnpm dev`, or `pnpm start` for wrangler on :
 
 ```sh
 scripts/members-check.sh          # add-member path: register -> owner creates member -> member logs in -> existing account -> member cap
-scripts/inquiry-check.sh          # public inquiry path: register -> site config -> key -> POST -> email outcome
+scripts/content-check.sh          # two-workspace user: Referer scoping -> dashboard counts -> post tags -> inquiries removed
 scripts/media-check.sh
 ```

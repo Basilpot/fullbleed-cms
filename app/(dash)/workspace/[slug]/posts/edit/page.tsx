@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TipTapField } from "@/components/posts/tiptap-field";
+import { TagInput } from "@/components/posts/tag-input";
 import { generateSlug } from "@/lib/generateSlug";
 import { useSlugAutoFill } from "@/lib/useSlugAutoFill";
 import { useDraft } from "@/hooks/use-draft";
@@ -239,12 +240,6 @@ const PostFormInner = () => {
                   onChange={(v) => setCoverImage(v.url)}
                 />
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="tags" className="font-bold text-sm">
-                    Cover Image Alt
-                  </Label>
-                  <Input {...register("tags")} />
-                </div>
-                <div className="flex flex-col gap-1">
                   <Label htmlFor="metaTitle" className="font-bold text-sm">
                     Meta Title
                   </Label>
@@ -344,6 +339,20 @@ const PostFormInner = () => {
                 )}
               />
             </div>
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-col gap-1 w-full my-4">
+            <Label htmlFor="tags" className="font-bold text-sm">
+              Tags
+            </Label>
+            <Controller
+              control={control}
+              name="tags"
+              render={({ field }) => (
+                <TagInput id="tags" value={field.value} onChange={field.onChange} />
+              )}
+            />
           </div>
 
           {/* Content Editor */}

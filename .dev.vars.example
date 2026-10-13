@@ -1,2 +1,1 @@
 # Copy to .dev.vars and paste your own values (never commit .dev.vars)
-RESEND_API_KEY=

@@ -56,7 +56,11 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - Every other API validates the session, then resolves the **current workspace**:
   `workspaceFor(c, slug?)` / `sessionFor(token, slug?)` take an optional workspace
   slug, and fall back to the caller's **most recent** `memberships` row
-  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted — for an account
+  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted. `workspaceFor`
+  reads the slug from its argument, else `?workspace=`, else the same-origin
+  `Referer` (`/workspace/<slug>/…`), so dashboard fetches are scoped to the page
+  that issued them without each call passing the slug; membership is still
+  checked. With nothing to go on it falls back — for an account
   an owner created via Members, that is the owner's workspace. The dashboard layout re-resolves scoped to its
   own `[slug]`, so members of several workspaces are not bounced to their newest
   one.
@@ -114,9 +118,9 @@ CORS is per-origin via `allowed_origins`. Full route list in `api/README.md`.
 | Storage | local D1 via wrangler (`pnpm exec wrangler d1 migrations apply fullbleed --local`) | remote D1/R2 |
 
 Both run the **same** `api/app.ts`. The production path is proven by
-`scripts/members-check.sh`, `scripts/inquiry-check.sh` and `scripts/media-check.sh` —
+`scripts/members-check.sh`, `scripts/content-check.sh` and `scripts/media-check.sh` —
 point any of them at the reported port
-(`./scripts/inquiry-check.sh http://localhost:<port>`).
+(`./scripts/members-check.sh http://localhost:<port>`).
 
 ## Dev server gotchas
 

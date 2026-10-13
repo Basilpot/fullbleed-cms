@@ -36,6 +36,8 @@ export default function Posts() {
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   // "all" | "trash"
   const [view, setView] = useState<"all" | "trash">("all");
+  // Bumped after a row action (delete/restore) so the list refetches in place.
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -69,7 +71,7 @@ export default function Posts() {
       }
     }
     fetchBlogs();
-  }, [view, selectedCategory, page, limit]);
+  }, [view, selectedCategory, page, limit, reloadKey]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -160,7 +162,7 @@ export default function Posts() {
 
       <div className="max-w-full">
         <DataTable
-          columns={postsColumns(slug)}
+          columns={postsColumns(slug, () => setReloadKey((key) => key + 1))}
           data={posts}
           pagination={pagination}
           searchable={false}

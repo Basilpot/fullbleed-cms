@@ -29,9 +29,8 @@ Edit `wrangler.jsonc`:
 | `d1_databases[0].database_name` | The name you'll use for the D1 database |
 | `d1_databases[0].database_id` | From `wrangler d1 create` (step 2) |
 | `r2_buckets[0].bucket_name` | Your R2 bucket name |
-| `vars.APP_URL` | `https://cms.example.com` (used for email links) |
+| `vars.APP_URL` | `https://cms.example.com` (the dashboard's public URL) |
 | `vars.MEDIA_URL` | `https://media.example.com` (public media URL, step 4) |
-| `vars.RESEND_FROM` | Sender line for emails, e.g. `Fullbleed <fullbleed@basilpot.com>` |
 | `vars.PLATFORM_ADMIN_EMAIL` | Email that auto-promotes to platform admin on signup |
 
 ## 2. Create the database and bucket
@@ -79,24 +78,7 @@ Get `YOUR_ZONE_ID` from the Cloudflare dashboard (Domain → your zone → overv
 Using `workers.dev` alone works for the dashboard, but the API path you hand to
 websites is nicer on your own domain.
 
-## 5. Email (inquiry notifications)
-
-Inquiry notifications are sent with [Resend](https://resend.com). The sender address
-must be a domain verified in Resend. Store the API key as a **secret** (never commit
-it):
-
-```bash
-pnpm exec wrangler secret put RESEND_API_KEY
-```
-
-For local development, put `RESEND_API_KEY=…` in a `.dev.vars` file (see
-`.dev.vars.example`; `.dev.vars` is gitignored).
-
-If `RESEND_API_KEY` is not set, inquiries are still stored and shown in the dashboard;
-only the notification email is skipped. Members are never emailed — owners create their
-accounts directly.
-
-## 6. Deploy & verify
+## 5. Deploy & verify
 
 ```bash
 pnpm run deploy
@@ -112,12 +94,12 @@ curl https://cms.example.com/api/health
 # {"service":"fullbleed-api","status":"ok",…}
 ```
 
-## 7. First signup → platform admin
+## 6. First signup → platform admin
 
 Sign up at `/signup` using the email in `PLATFORM_ADMIN_EMAIL`. That account is
 auto-promoted to platform admin and can manage all users at `/admin`.
 
-## 8. Local development
+## 7. Local development
 
 ```bash
 pnpm dev          # dev server on http://localhost:3001
@@ -127,7 +109,7 @@ pnpm start        # run the built worker locally (wrangler dev)
 
 ## Allowed origins (API + CORS)
 
-Browser requests to the public API (GET endpoints and inquiry submission) carry an
+Browser requests to the public API (GET endpoints) carry an
 `Origin` header. Fullbleed checks it against the workspace's `allowed_origins` list
 and rejects unknown origins with `403 Origin not allowed`. Server-to-server requests
 without an `Origin` header skip the check.

@@ -55,7 +55,7 @@ export default function SettingsPage() {
     <div className="max-w-3xl">
       <SettingsHeader
         title="Settings"
-        description="Business details shown on your website. Enquiries from your contact forms are delivered to the contact email."
+        description="Business details shown on your website."
       />
 
       <form onSubmit={onSubmit} className="space-y-2">
@@ -82,10 +82,6 @@ export default function SettingsPage() {
               <Input value={draft.whatsAppNumber} onChange={(e) => set("whatsAppNumber", e.target.value)} />
             </Field>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Contact form submissions are emailed to this address. Leave it blank to keep enquiries in the dashboard
-            only.
-          </p>
         </Section>
 
         <Section title="Phone numbers">

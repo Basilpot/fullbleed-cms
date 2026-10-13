@@ -62,7 +62,7 @@ export default function ApiAccessPage() {
   return <div className="space-y-6">
     <PageHeader title="API Access" description="Publishable API keys for client websites." />
     <div className="flex justify-between gap-3">
-      <p className="max-w-xl text-sm text-muted-foreground">Keys authenticate your public API calls (e.g. inquiry forms). Send them as <code className="rounded bg-muted px-1 py-0.5 text-xs">Authorization: Bearer kb_pub_…</code> from your site.</p>
+      <p className="max-w-xl text-sm text-muted-foreground">Keys authenticate your site&apos;s calls to the public content API. Send them as <code className="rounded bg-muted px-1 py-0.5 text-xs">Authorization: Bearer kb_pub_…</code> from your site.</p>
       <Button onClick={create}>Create API key</Button>
     </div>
     <div className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
@@ -70,8 +70,7 @@ export default function ApiAccessPage() {
       <div className="space-y-1 text-sm">
         <p className="font-medium text-amber-900">Treat API keys like passwords</p>
         <p className="text-muted-foreground">
-          Anyone holding a key can read your published content and submit inquiries as this
-          workspace. Revoking is permanent and there is no undo, so rotate keys you suspect are
+          Anyone holding a key can read this workspace&apos;s published content. Revoking is permanent and there is no undo, so rotate keys you suspect are
           exposed. Prefer proxying requests through your own server rather than shipping the key
           in browser code.
         </p>

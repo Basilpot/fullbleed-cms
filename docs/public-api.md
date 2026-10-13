@@ -1,8 +1,7 @@
 # Public API & API keys
 
 The public API lets any website read a workspace's published content — posts, pages,
-posts, taxonomy, redirects — and submit contact-form inquiries. It is **read-only**
-(plus inquiry submission), JSON everywhere, and authenticated with a publishable key.
+posts, taxonomy, redirects, site config. It is **read-only**, JSON everywhere, and authenticated with a publishable key.
 
 ## Base URL
 
@@ -148,38 +147,6 @@ Authors additionally include `description` (bio) and `image_media_id`.
 
 or `404 { "error": "Not found" }`.
 
-### Inquiries (contact form)
-
-`POST /inquiries`
-
-Accepts JSON:
-
-```json
-{
-  "name": "Ada Lovelace",
-  "email": "ada@example.com",
-  "phone": "+1 555 0100",
-  "subject": "Project inquiry",
-  "message": "We’d love to work with you."
-}
-```
-
-Only `name`, `email` and `message` are required (email must contain `@`). If the request
-carries an `Origin`, it must be in the workspace's allowed-origin allowlist.
-
-Success (201) → the message appears in the dashboard under **Inquiries**, and is
-emailed to the workspace's contact address (set under dashboard **Settings** →
-Contact). The response reports whether the email went out:
-
-```json
-{ "data": { "received": true, "emailed": true, "emailError": null } }
-```
-
-`emailed` is `false` with an `emailError` string when no contact address is configured
-or the send failed — the inquiry is still stored either way, so you do not need to
-retry. `reply_to` on the notification is the sender's address, so replying to the email
-answers them directly.
-
 ### Site config
 
 `GET /site-config`
@@ -213,26 +180,7 @@ const { data: posts } = await res.json();
 ))}
 ```
 
-## 6. Example: contact form
-
-From a script, page, or edge function on your own origin (no Origin header, so no
-allowlist needed):
-
-```js
-const res = await fetch("https://fullbleed.basilpot.com/api/v1/inquiries", {
-  method: "POST",
-  headers: {
-    Authorization: "Bearer " + process.env.FULLBLEED_API_KEY,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ name, email, message }),
-});
-```
-
-To submit from a browser directly, the page's origin must be on the workspace's
-allowed-origin allowlist.
-
-## 7. Errors
+## 6. Errors
 
 All errors use the `{ "error": "…" }` shape:
 

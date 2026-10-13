@@ -9,6 +9,7 @@ import {
   Trash,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 type InfoPageCategory = {
   id: string;
@@ -54,16 +56,17 @@ const deleteInfoPage = async (id: string) => {
   );
   const data = await response.json();
   if (response.ok) {
-    toast.success(data?.message || "Page deleted successfully");
+    toast.success("Service deleted");
   } else {
     toast.error(
       data?.message ||
         "Something went wrong, please try again after some time!",
     );
   }
+  return response.ok;
 };
 
-export const infoPagesColumns = (slug: string): ColumnDef<InfoPage>[] => [
+export const infoPagesColumns = (slug: string, onChanged: () => void): ColumnDef<InfoPage>[] => [
   {
     accessorKey: "id",
     header: "SN",
@@ -158,43 +161,59 @@ export const infoPagesColumns = (slug: string): ColumnDef<InfoPage>[] => [
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => {
-      const page = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/info/${page.slug}`,
-                )
-              }
-            >
-              <Copy /> Copy Page URL
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <Link href={`/workspace/${slug}/services/edit?id=${page.id}`}>
-              <DropdownMenuItem>
-                <Edit /> Edit
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuItem
-              className="text-muted-foreground hover:text-muted-foreground!"
-              onClick={() => deleteInfoPage(page.id)}
-            >
-              <Trash /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <ServiceActions page={row.original} slug={slug} onChanged={onChanged} />,
   },
 ];
+
+
+function ServiceActions({ page, slug, onChanged }: { page: InfoPage; slug: string; onChanged: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() =>
+              navigator.clipboard.writeText(
+                `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/info/${page.slug}`,
+              )
+            }
+          >
+            <Copy /> Copy Page URL
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <Link href={`/workspace/${slug}/services/edit?id=${page.id}`}>
+            <DropdownMenuItem>
+              <Edit /> Edit
+            </DropdownMenuItem>
+          </Link>
+          <DropdownMenuItem
+            className="text-muted-foreground hover:text-muted-foreground!"
+            onClick={() => setConfirming(true)}
+          >
+            <Trash /> Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={`Delete “${page.title}”?`}
+        description="This service is removed from your site immediately. This cannot be undone."
+        confirmLabel="Delete service"
+        pendingLabel="Deleting…"
+        onConfirm={async () => {
+          if (await deleteInfoPage(page.id)) onChanged();
+        }}
+      />
+    </>
+  );
+}

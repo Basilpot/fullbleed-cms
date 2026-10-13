@@ -9,8 +9,6 @@ interface __BaseEnv_Env {
 	APP_URL: "https://fullbleed.basilpot.com";
 	MEDIA_URL: "https://media.fullbleed.basilpot.com";
 	PLATFORM_ADMIN_EMAIL: "";
-	RESEND_API_KEY?: string;
-	RESEND_FROM: string;
 }
 declare namespace Cloudflare {
 	interface Env extends __BaseEnv_Env {}
@@ -20,7 +18,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_URL" | "MEDIA_URL" | "PLATFORM_ADMIN_EMAIL" | "RESEND_API_KEY" | "RESEND_FROM">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_URL" | "MEDIA_URL" | "PLATFORM_ADMIN_EMAIL">> {}
 }
 
 // Begin runtime types

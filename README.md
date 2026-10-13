@@ -5,7 +5,7 @@ without dragging in a full-scale CMS. Runs as a single Cloudflare Worker with a 
 database and an R2 media bucket.
 
 **Publish web content** — pages and posts with author, category, and tags —
-manage images, handle contact-form inquiries and redirects, add team members, and
+manage images and redirects, add team members, and
 serve everything to any website through a read-only **public API** authenticated with
 `kb_pub_…` keys.
 
@@ -23,9 +23,8 @@ serve everything to any website through a read-only **public API** authenticated
 - **Pages** and **Posts** content types with SEO metadata and cover media. Services are
   a type of page.
 - **Media library** on object storage with public image URLs
-- **Public JSON API** — published content, taxonomy, redirect resolution, and inquiry
-  submission via publishable API keys
-- **Inquiries** inbox for contact forms submitted from your websites
+- **Public JSON API** — published content, taxonomy, redirect resolution, and site
+  config via publishable API keys
 - **Platform admin** panel for managing users across workspaces
 - Custom-domain worker and media host; `workers.dev` works too
 
@@ -55,8 +54,7 @@ curl -H "Authorization: Bearer kb_pub_YOUR_KEY" \
 }
 ```
 
-Send contact-form inquiries with `POST /api/v1/inquiries`. Only published content is
-ever returned. See the [Public API docs](https://fullbleed.basilpot.com/docs/public-api)
+Only published content is ever returned. See the [Public API docs](https://fullbleed.basilpot.com/docs/public-api)
 for every endpoint.
 
 ## Development
@@ -68,10 +66,6 @@ pnpm dev                            # dev server on http://localhost:3001
 pnpm build                          # production build
 pnpm start                          # run the built worker locally
 ```
-
-Inquiry notification emails go through Resend: set `RESEND_API_KEY` in a local `.dev.vars` file
-(see `.dev.vars.example`) and as a production secret (`wrangler secret put`).
-`RESEND_FROM` is a worker var in `wrangler.jsonc`.
 
 ## Deploy
 
@@ -102,7 +96,7 @@ version:
 git clone git@github.com:Basilpot/fullbleed-cms.git
 cd fullbleed-cms
 pnpm install
-cp .dev.vars.example .dev.vars          # add RESEND_API_KEY if you want emails
+cp .dev.vars.example .dev.vars
 pnpm exec wrangler d1 migrations apply fullbleed --local
 pnpm dev                                # http://localhost:3001
 ```

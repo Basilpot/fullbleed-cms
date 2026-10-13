@@ -4,13 +4,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import {
   Copy,
   Edit,
-  LucideExternalLink,
   LucideRefreshCcw,
   LucideTrash,
   MoreHorizontal,
   Trash,
 } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getFullImageUrl } from "@/lib/getFullImageUrl";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -73,13 +74,14 @@ const deletePost = async (id: string) => {
   );
   const data = await response.json();
   if (response.ok) {
-    toast.success(data?.message || "Item deleted successfully");
+    toast.success("Post moved to trash");
   } else {
     toast.error(
       data?.message ||
         "Something went wrong, please try again after some time!",
     );
   }
+  return response.ok;
 };
 const permanentlyDeletePost = async (id: string) => {
   const res = await fetch(
@@ -92,13 +94,14 @@ const permanentlyDeletePost = async (id: string) => {
 
   const data = await res.json();
   if (res.ok) {
-    toast.success(data?.message || "Item deleted successfully");
+    toast.success("Post permanently deleted");
   } else {
     toast.error(
       data?.message ||
         "Something went wrong, please try again after some time!",
     );
   }
+  return res.ok;
 };
 
 const restorePost = async (id: string) => {
@@ -114,16 +117,17 @@ const restorePost = async (id: string) => {
   const data = await response.json();
 
   if (response.ok) {
-    toast.success(data?.message || "Item Restored");
+    toast.success("Post restored");
   } else {
     toast.error(
       data?.message ||
         "Something went wrong, please try again after some time!",
     );
   }
+  return response.ok;
 };
 
-export const postsColumns = (slug: string): ColumnDef<Post>[] => [
+export const postsColumns = (slug: string, onChanged: () => void): ColumnDef<Post>[] => [
   {
     accessorKey: "id",
     header: "SN",
@@ -230,67 +234,87 @@ href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => {
-      const post = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            {!row.original.inTrash && (
-              <DropdownMenuItem
-                className="group"
-                onClick={() =>
-                  navigator.clipboard.writeText(
-                    `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/${post.slug}`,
-                  )
-                }
-              >
-                <Copy className="group-hover:text-accent-foreground" /> Copy Post URL
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            {!row.original.inTrash && (
-              <Link href={`/workspace/${slug}/posts/edit?slug=${row.original.slug}`}>
-                <DropdownMenuItem className="group">
-                  <Edit className="group-hover:text-accent-foreground" /> Edit
-                </DropdownMenuItem>
-              </Link>
-            )}
-            {!row.original.inTrash && (
-              <DropdownMenuItem
-                className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
-                onClick={() => deletePost(row.original.id)}
-              >
-                <Trash className="group-hover:text-red-500" /> Delete
-              </DropdownMenuItem>
-            )}
-            {row.original.inTrash && (
-              <DropdownMenuItem
-                className="text-muted-foreground hover:text-muted-foreground! hover:bg-muted!"
-                onClick={() => restorePost(row.original.id)}
-              >
-                <LucideRefreshCcw /> Restore
-              </DropdownMenuItem>
-            )}
-            {row.original.inTrash && (
-              <DropdownMenuItem
-                className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
-                onClick={() => permanentlyDeletePost(row.original.id)}
-              >
-                <LucideTrash className="group-hover:text-red-500" /> Permanently
-                Delete
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <PostActions post={row.original} slug={slug} onChanged={onChanged} />,
   },
 ];
+
+
+function PostActions({ post, slug, onChanged }: { post: Post; slug: string; onChanged: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          {!post.inTrash && (
+            <DropdownMenuItem
+              className="group"
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  `${process.env.NEXT_PUBLIC_FRONTEND_BASE_URL}/${post.slug}`,
+                )
+              }
+            >
+              <Copy className="group-hover:text-accent-foreground" /> Copy Post URL
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          {!post.inTrash && (
+            <Link href={`/workspace/${slug}/posts/edit?slug=${post.slug}`}>
+              <DropdownMenuItem className="group">
+                <Edit className="group-hover:text-accent-foreground" /> Edit
+              </DropdownMenuItem>
+            </Link>
+          )}
+          {!post.inTrash && (
+            <DropdownMenuItem
+              className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
+              onClick={async () => {
+                if (await deletePost(post.id)) onChanged();
+              }}
+            >
+              <Trash className="group-hover:text-red-500" /> Move to trash
+            </DropdownMenuItem>
+          )}
+          {post.inTrash && (
+            <DropdownMenuItem
+              className="text-muted-foreground hover:text-muted-foreground! hover:bg-muted!"
+              onClick={async () => {
+                if (await restorePost(post.id)) onChanged();
+              }}
+            >
+              <LucideRefreshCcw /> Restore
+            </DropdownMenuItem>
+          )}
+          {post.inTrash && (
+            <DropdownMenuItem
+              className="group text-muted-foreground hover:text-red-500! hover:bg-red-200!"
+              onClick={() => setConfirming(true)}
+            >
+              <LucideTrash className="group-hover:text-red-500" /> Permanently
+              Delete
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={`Permanently delete “${post.title}”?`}
+        description="The post and its tag links are removed for good. This cannot be undone."
+        confirmLabel="Delete forever"
+        pendingLabel="Deleting…"
+        onConfirm={async () => {
+          if (await permanentlyDeletePost(post.id)) onChanged();
+        }}
+      />
+    </>
+  );
+}

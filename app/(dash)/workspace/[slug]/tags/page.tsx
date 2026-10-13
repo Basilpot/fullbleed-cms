@@ -175,7 +175,7 @@ export default function Tags() {
     },
     { accessorKey: "slug", header: "Slug/URL" },
     {
-      header: "Products",
+      header: "Posts",
       cell: ({ row }) => row.original._count?.products ?? 0,
     },
     {
@@ -226,7 +226,7 @@ export default function Tags() {
       <div className="mb-6">
         <PageHeader
           title="Tags"
-          description="Curated tags that highlight products"
+          description="Group related posts so readers can find them"
         >
           <Button size="lg" onClick={openCreateDialog}>
             <LucidePlus className="mr-2" size={18} />

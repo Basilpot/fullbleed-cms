@@ -36,6 +36,8 @@ export default function InfoPages() {
   const [pagination, setPagination] = useState<TPagination>();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [categories, setCategories] = useState<InfoPageCategory[]>([]);
+  // Bumped after a row action (delete/restore) so the list refetches in place.
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function fetchInfoPages() {
@@ -67,7 +69,7 @@ export default function InfoPages() {
       }
     }
     fetchInfoPages();
-  }, [selectedCategory, status, page, limit, search]);
+  }, [selectedCategory, status, page, limit, search, reloadKey]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -116,7 +118,7 @@ export default function InfoPages() {
 
       <div className="max-w-full">
         <DataTable
-          columns={infoPagesColumns(slug)}
+          columns={infoPagesColumns(slug, () => setReloadKey((key) => key + 1))}
           data={infoPages}
           pagination={pagination}
           searchPlaceholder="Search pages…"

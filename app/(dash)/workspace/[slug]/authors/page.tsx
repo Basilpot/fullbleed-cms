@@ -388,9 +388,9 @@ export default function Authors() {
             <DialogDescription>This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
             <Button
-              variant="secondary"
+              variant="destructive"
               onClick={() => {
                 if (currentAuthorId) deleteAuthor(currentAuthorId);
                 setIsDeleteDialogOpen(false);

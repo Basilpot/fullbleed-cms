@@ -132,14 +132,17 @@ cms.get("/tags", async (c) => {
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const { page, limit, offset } = pagination(new URL(c.req.url));
   const [list, count] = await c.env.DB.batch([
-    c.env.DB.prepare("SELECT id, name, slug, description, created_at FROM tags WHERE workspace_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").bind(session.workspace_id, limit, offset),
+    c.env.DB.prepare(`SELECT tags.id, tags.name, tags.slug, tags.description, tags.created_at,
+        (SELECT COUNT(*) FROM content_tags JOIN content ON content.id = content_tags.content_id
+         WHERE content_tags.tag_id = tags.id AND content.deleted_at IS NULL) AS posts
+      FROM tags WHERE workspace_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`).bind(session.workspace_id, limit, offset),
     c.env.DB.prepare("SELECT COUNT(*) AS total FROM tags WHERE workspace_id = ?").bind(session.workspace_id),
   ]);
-  const rows = list.results as { id: string; name: string; slug: string; description: string | null; created_at: string }[];
+  const rows = list.results as { id: string; name: string; slug: string; description: string | null; created_at: string; posts: number }[];
   const total = Number((count.results[0] as { total: number }).total);
   return c.json({
     data: {
-      tags: rows.map((row) => ({ id: row.id, name: row.name, slug: row.slug, description: row.description ?? "", createdAt: row.created_at, _count: { products: 0 } })),
+      tags: rows.map((row) => ({ id: row.id, name: row.name, slug: row.slug, description: row.description ?? "", createdAt: row.created_at, _count: { products: Number(row.posts) } })),
       pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
     },
   });
@@ -583,7 +586,7 @@ cms.get("/admin/analytics", async (c) => {
   const session = await workspaceFor(c);
   if (!session) return c.json({ error: "Unauthorized" }, 401);
   const [contentRows, ...counts] = await c.env.DB.batch([
-    c.env.DB.prepare("SELECT kind, COUNT(*) AS total, SUM(status = 'published') AS published, SUM(status = 'draft') AS draft FROM content WHERE workspace_id = ? GROUP BY kind").bind(session.workspace_id),
+    c.env.DB.prepare("SELECT kind, COUNT(*) AS total, SUM(status = 'published') AS published, SUM(status = 'draft') AS draft FROM content WHERE workspace_id = ? AND deleted_at IS NULL GROUP BY kind").bind(session.workspace_id),
     c.env.DB.prepare("SELECT COUNT(*) AS n FROM media WHERE workspace_id = ?").bind(session.workspace_id),
     c.env.DB.prepare("SELECT COUNT(*) AS n FROM authors WHERE workspace_id = ?").bind(session.workspace_id),
     c.env.DB.prepare("SELECT COUNT(*) AS n FROM categories WHERE workspace_id = ?").bind(session.workspace_id),
@@ -595,7 +598,8 @@ cms.get("/admin/analytics", async (c) => {
       { total: Number(r.total), published: Number(r.published), draft: Number(r.draft) },
     ]),
   );
-  const [posts, services] = [byKind.post ?? byKind.page, byKind.service].map((k) => k ?? { total: 0, published: 0, draft: 0 });
+  // The dashboard's Services section stores its items as kind 'page' (see /info-page).
+  const [posts, services] = [byKind.post, byKind.page].map((k) => k ?? { total: 0, published: 0, draft: 0 });
   const num = (i: number) => Number((counts[i].results as { n: number }[])[0]?.n ?? 0);
   return c.json({
     data: {
