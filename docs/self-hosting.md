@@ -79,9 +79,9 @@ Get `YOUR_ZONE_ID` from the Cloudflare dashboard (Domain → your zone → overv
 Using `workers.dev` alone works for the dashboard, but the API path you hand to
 websites is nicer on your own domain.
 
-## 5. Email (invitations)
+## 5. Email (inquiry notifications)
 
-Member invitations are sent with [Resend](https://resend.com). The sender address
+Inquiry notifications are sent with [Resend](https://resend.com). The sender address
 must be a domain verified in Resend. Store the API key as a **secret** (never commit
 it):
 
@@ -92,9 +92,9 @@ pnpm exec wrangler secret put RESEND_API_KEY
 For local development, put `RESEND_API_KEY=…` in a `.dev.vars` file (see
 `.dev.vars.example`; `.dev.vars` is gitignored).
 
-If `RESEND_API_KEY` is not set, invites are created but no email is sent — the invite
-link is still returned to the inviter's dashboard, so local development works without
-a key.
+If `RESEND_API_KEY` is not set, inquiries are still stored and shown in the dashboard;
+only the notification email is skipped. Members are never emailed — owners create their
+accounts directly.
 
 ## 6. Deploy & verify
 

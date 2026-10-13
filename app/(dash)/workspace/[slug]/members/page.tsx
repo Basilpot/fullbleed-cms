@@ -9,18 +9,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Shield, ShieldCheck, Mail } from "lucide-react";
+import { Trash2, Shield, UserPlus, Copy, RefreshCw } from "lucide-react";
 
 type Member = { id: string; name: string; email: string; imageUrl: string | null; role: "owner" | "editor"; createdAt: string };
-type Invitation = { id: string; email: string; role: string; expiresAt: string; acceptedAt: string | null; createdAt: string };
+type Credentials = { name: string; email: string; password: string | null; loginUrl: string };
+
+const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+function generatePassword(length = 16) {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (byte) => PASSWORD_ALPHABET[byte % PASSWORD_ALPHABET.length]).join("");
+}
 
 export default function MembersPage() {
   const params = useParams();
   const slug = String(params.slug ?? "");
   const [members, setMembers] = useState<Member[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [lastInvite, setLastInvite] = useState<{ email: string; link: string } | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState(() => generatePassword());
+  const [newRole, setNewRole] = useState<"owner" | "editor">("editor");
+  const [adding, setAdding] = useState(false);
+  const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [loading, setLoading] = useState(true);
 
   const membersUrl = useCallback(
@@ -36,7 +46,6 @@ export default function MembersPage() {
       return;
     }
     setMembers(data?.data?.members ?? []);
-    setInvitations(data?.data?.invitations ?? []);
     setLoading(false);
   }
 
@@ -47,41 +56,55 @@ export default function MembersPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Failed to load members");
         setMembers(data?.data?.members ?? []);
-        setInvitations(data?.data?.invitations ?? []);
-      })
+          })
       .catch((e: any) => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [slug, membersUrl]);
 
-  async function invite(e: React.FormEvent) {
+  async function addMember(e: React.FormEvent) {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
+    if (!newEmail.trim()) return;
+    setAdding(true);
     const res = await fetch(membersUrl(), {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: inviteEmail }),
+      body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole }),
     });
     const payload = await res.json();
+    setAdding(false);
     if (!res.ok) {
-      toast.error(payload?.error || "Invite failed");
+      toast.error(payload?.error || "Could not add member");
       return;
     }
-    const token = payload?.data?.token;
-    if (token) {
-      const email = payload?.data?.email ?? inviteEmail.trim();
-      const link = `${window.location.origin}/invite/${token}`;
-      setLastInvite({ email, link });
-      try {
-        await navigator.clipboard.writeText(link);
-      } catch {
-        // Clipboard blocked (insecure context / denied permission) — the link is on screen.
-      }
-      if (payload?.data?.emailed) toast.success("Invite created and emailed.");
-      else toast.warning(payload?.data?.emailError ? `Invite created, but the email failed: ${payload.data.emailError}. Copy the link below.` : "Invite created. Copy the link below.");
-    }
-    setInviteEmail("");
+    const created = Boolean(payload?.data?.created);
+    setCredentials({
+      name: payload?.data?.name ?? newName,
+      email: payload?.data?.email ?? newEmail.trim(),
+      password: created ? newPassword : null,
+      loginUrl: `${window.location.origin}/login`,
+    });
+    toast.success(created ? "Account created. Share the login details below." : "Existing account added to this workspace.");
+    setNewName("");
+    setNewEmail("");
+    setNewPassword(generatePassword());
+    setNewRole("editor");
     load();
+  }
+
+  async function copyCredentials() {
+    if (!credentials) return;
+    const text = [
+      `Login: ${credentials.loginUrl}`,
+      `Email: ${credentials.email}`,
+      credentials.password ? `Password: ${credentials.password}` : "Password: your existing Fullbleed password",
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Login details copied");
+    } catch {
+      toast.error("Clipboard blocked — copy the details manually");
+    }
   }
 
   async function setRole(member: Member, role: "owner" | "editor") {
@@ -112,41 +135,80 @@ export default function MembersPage() {
     load();
   }
 
-  async function revokeInvite(invitation: Invitation) {
-    const res = await fetch(membersUrl(`/invitations/${invitation.id}`), { method: "DELETE", credentials: "include" });
-    if (!res.ok) {
-      toast.error("Failed to revoke invite");
-      return;
-    }
-    toast.success("Invite revoked");
-    load();
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader title="Members" description="People with access to this workspace" />
 
-      <form onSubmit={invite} className="flex flex-wrap items-end gap-3 rounded-xl border p-4">
+      <form onSubmit={addMember} className="flex flex-wrap items-end gap-3 rounded-xl border p-4">
         <div className="flex flex-col gap-1">
-          <Label htmlFor="invite-email">Invite by email</Label>
+          <Label htmlFor="member-name">Name</Label>
+          <Input id="member-name" placeholder="Jane Doe" value={newName} onChange={(e) => setNewName(e.target.value)} className="min-w-48" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="member-email">Email</Label>
           <Input
-            id="invite-email"
+            id="member-email"
             type="email"
+            required
             placeholder="teammate@example.com"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
             className="min-w-64"
           />
         </div>
-        <Button type="submit" className="ml-auto">
-          <Mail /> Send invite
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="member-password">Password</Label>
+          <div className="flex gap-1">
+            <Input
+              id="member-password"
+              minLength={12}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="min-w-48 font-mono"
+              autoComplete="off"
+            />
+            <Button type="button" variant="outline" size="icon" onClick={() => setNewPassword(generatePassword())} aria-label="Generate password">
+              <RefreshCw />
+            </Button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label>Role</Label>
+          <Select value={newRole} onValueChange={(role) => setNewRole(role as "owner" | "editor")}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="editor">Editor</SelectItem>
+              <SelectItem value="owner">Owner</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" className="ml-auto" disabled={adding}>
+          <UserPlus /> {adding ? "Adding…" : "Add member"}
         </Button>
+        <p className="w-full text-xs text-muted-foreground">
+          Creates the account and adds it to this workspace — no email is sent. If the email already has an account, it is added with its existing password.
+        </p>
       </form>
 
-      {lastInvite && (
+      {credentials && (
         <div className="rounded-xl border border-dashed p-4 text-sm">
-          <div className="mb-2 font-medium">Share this link with {lastInvite.email}</div>
-          <code className="block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs break-all">{lastInvite.link}</code>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="font-medium">Share these login details with {credentials.name || credentials.email}</span>
+            <Button variant="ghost" size="sm" className="ml-auto" onClick={copyCredentials}>
+              <Copy /> Copy
+            </Button>
+          </div>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-lg bg-muted px-3 py-2 font-mono text-xs break-all">
+            <dt className="text-muted-foreground">Login</dt>
+            <dd>{credentials.loginUrl}</dd>
+            <dt className="text-muted-foreground">Email</dt>
+            <dd>{credentials.email}</dd>
+            <dt className="text-muted-foreground">Password</dt>
+            <dd>{credentials.password ?? "Their existing password"}</dd>
+          </dl>
+          {credentials.password && <p className="mt-2 text-xs text-muted-foreground">The password is not shown again once you leave this page.</p>}
         </div>
       )}
 
@@ -191,28 +253,6 @@ export default function MembersPage() {
           </ul>
         )}
       </div>
-
-      {invitations.length > 0 && (
-        <div className="rounded-xl border">
-          <div className="border-b px-4 py-3 text-sm font-medium">Pending invitations</div>
-          <ul className="divide-y">
-            {invitations.map((invitation) => (
-              <li key={invitation.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                <ShieldCheck className="size-5 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate">{invitation.email}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {invitation.acceptedAt ? "Accepted" : `Expires ${new Date(invitation.expiresAt).toLocaleDateString()}`}
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => revokeInvite(invitation)}>
-                  <Trash2 /> Revoke
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

@@ -15,6 +15,11 @@ to this base.
 
 The API returns **published content only** — drafts and deleted items never appear.
 
+Responses are never cached by Fullbleed: every response carries `Cache-Control: no-store`
+and reflects the database at request time, so an edit in the dashboard shows up on the
+next request. Caching is up to your website — e.g. Next.js `fetch(url, { next: { revalidate: 60 } })`,
+your framework's ISR, or your own CDN rules.
+
 ## 1. Create an API key
 
 1. In the dashboard open **API Access** (`/workspace/{slug}/api-access`).

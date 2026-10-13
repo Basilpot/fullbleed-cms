@@ -14,6 +14,15 @@ export type ApiEnv = {
 
 export const api = new Hono<ApiEnv>().basePath("/api");
 
+// Nothing under /api is cached — not at the edge, not in the browser. Every
+// response reflects the database as of the request; sites consuming the API
+// own their caching. Handlers that set their own Cache-Control (media files)
+// keep it.
+api.use("*", async (c, next) => {
+  await next();
+  if (!c.res.headers.has("cache-control")) c.res.headers.set("Cache-Control", "no-store");
+});
+
 api.get("/health", (c) => c.json({ service: "fullbleed-api", status: "ok", timestamp: new Date().toISOString() }));
 
 api.route("/media-library", media);

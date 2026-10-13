@@ -19,7 +19,7 @@ Next.js route handler: app/api/[[...path]]/route.ts   ← the "catch-all"
 api/app.ts  (mounts all feature routers)
    ├── /auth/*            app/api/auth/*                 (Next route handlers)
    ├── /admin             api/platform.ts    platform admin (users, suspend)
-   ├── /members           api/team.ts        workspace members + invites
+   ├── /members           api/team.ts        workspace members
    ├── /blogs /info-page /media-library...    api/cms.ts / api/media.ts
    └── /v1/*              public storefront API (api-key + public pages)
    ▼
@@ -56,8 +56,8 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - Every other API validates the session, then resolves the **current workspace**:
   `workspaceFor(c, slug?)` / `sessionFor(token, slug?)` take an optional workspace
   slug, and fall back to the caller's **most recent** `memberships` row
-  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted — that is where a
-  freshly accepted invite lands. The dashboard layout re-resolves scoped to its
+  (`created_at DESC, rowid DESC LIMIT 1`) when it is omitted — for an account
+  an owner created via Members, that is the owner's workspace. The dashboard layout re-resolves scoped to its
   own `[slug]`, so members of several workspaces are not bounced to their newest
   one.
 - Suspended users (`users.disabled_at` set) are rejected at login (403) **and**
@@ -71,27 +71,21 @@ Success: `{ data: ... }` (lists carry a `pagination` object). Errors:
 - A top-level next-page loads the workspace, then a `/workspace/[slug]` group
   contains dashboard, posts/pages, media, members, etc. The sidebar routes live
   in `components/app-sidebar.tsx`.
-- `/api/members` (file `api/team.ts`). Every route except `/accept` accepts
-  `?workspace=<slug>` to scope to a specific workspace:
-  - `GET /` → members + pending invitations.
-  - `POST /` `{email}` → creates a 7-day invitation; returns the one-time
-    `token`. **Token is only shown once** (DB stores its SHA-256 hash) — there
-    is intentionally no "resend".
-    The response also carries `emailed` / `emailError`: the send is **awaited**
-    (a floating promise is dropped once the worker returns) and Resend resolves
-    with `{ data: null, error }` rather than throwing. A failed send still
-    returns the token, and the Members page renders the link on screen so the
-    invite is never lost.
-  - `GET /invitations/:token` → public metadata for the invite screen,
-    `/invite/[token]`.
-  - `POST /accept` `{token}` → joins the workspace (creates membership).
-    Deliberately unscoped — the invitee is not a member of the target workspace
-    yet. `/invite/[token]` carries its token into `/signup?next=…` and
-    `/login?next=…`, so a brand-new account lands back on the invite.
-  - Owner-only: `PATCH /:userId` role changes, `DELETE /:userId`, and
-    `DELETE /invitations/:id`. Last-owner/self-demote/self-remove are blocked.
-- `workspaces.member_limit` (5) caps members, enforced at both invite and
-  accept time.
+- `/api/members` (file `api/team.ts`). Every route accepts `?workspace=<slug>`
+  to scope to a specific workspace:
+  - `GET /` → members.
+  - `POST /` `{name, email, password, role?}` (owner only) → adds a member
+    directly. There is **no invite flow and no email**: for a new email it
+    creates the user (password ≥ 12 chars, `email_verified_at` set) plus the
+    membership in one batch; the owner shares the credentials out of band and
+    the member logs in straight into this workspace — they never sign up or
+    create a workspace. An email that already has an account is just added
+    (its password is left untouched). Response `created` says which happened.
+    `role` defaults to `editor`.
+  - Owner-only: `PATCH /:userId` role changes, `DELETE /:userId`.
+    Last-owner/self-demote/self-remove are blocked.
+- `workspaces.member_limit` (5) caps members, enforced on add. The legacy
+  `invitations` table is no longer read or written.
 
 ## /admin (platform admin)
 

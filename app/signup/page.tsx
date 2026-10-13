@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Set when arriving from /invite/[token] so the new account lands back on the invite.
+  // Optional post-signup redirect.
   const next = searchParams.get("next");
   const [pending, setPending] = useState(false);
   async function submit(form: FormData) {

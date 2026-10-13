@@ -26,7 +26,7 @@ Both versions run the exact same codebase and expose the same dashboard and publ
   description, canonical URL), an optional cover image, an author, a category, and tags.
 - **Media library** — upload images to R2/CDN storage, reference them from your content;
   image URLs are served from your media domain.
-- **Members** — invite teammates to a workspace as editors or owners; revoke at any time.
+- **Members** — add teammates to a workspace as editors or owners (you set their login); revoke at any time.
 - **Inquiries (forms)** — your website can submit contact-form messages straight to the
   workspace through the public API; they appear in the dashboard's Inquiries area.
 - **Redirects** — manage URL redirects and resolve them from your site via the API.

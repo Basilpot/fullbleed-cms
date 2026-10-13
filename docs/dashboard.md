@@ -20,7 +20,7 @@ The sidebar groups the workspace's tools:
 | Pages & Posts | Manage **Pages** (your main content; Services are a type of page) and **Posts** (blog). |
 | Media | Upload images, edit alt text/captions, reuse files in content. |
 | API Access | Create and revoke publishable API keys. |
-| Members | Invite teammates and manage roles (owner vs editor). |
+| Members | Add teammates (you set their login) and manage roles (owner vs editor). |
 | Inquiries | Contact-form submissions arriving via the public API. |
 | Settings | Business name, contact details, address, logo and social links for your website. |
 | Redirects | Manage URL redirects that your site resolves through the API. |
@@ -50,8 +50,11 @@ Slugify rules: lowercase, non-alphanumerics become `-`, max 100 chars.
 
 ## Members and roles
 
-Go to **Members** to invite someone by email. Invited people accept with a link and
-create their account. Roles:
+Go to **Members** to add someone: enter their name, email, a password (one is generated
+for you) and a role. The account is created immediately — no email is sent and they
+don't sign up or create a workspace. Copy the login details shown and share them
+yourself; the member logs in straight into your workspace. If the email already has an
+account, it is added as-is and keeps its existing password. Roles:
 
 - **owner** — everything: content, media, members, API access.
 - **editor** — content, media, and inquiries.

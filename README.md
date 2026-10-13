@@ -5,7 +5,7 @@ without dragging in a full-scale CMS. Runs as a single Cloudflare Worker with a 
 database and an R2 media bucket.
 
 **Publish web content** — pages and posts with author, category, and tags —
-manage images, handle contact-form inquiries and redirects, invite team members, and
+manage images, handle contact-form inquiries and redirects, add team members, and
 serve everything to any website through a read-only **public API** authenticated with
 `kb_pub_…` keys.
 
@@ -19,7 +19,7 @@ serve everything to any website through a read-only **public API** authenticated
 
 ## Feature highlights
 
-- Multi-tenant **workspaces** with owner/editor roles and email invitations
+- Multi-tenant **workspaces** with owner/editor roles and owner-created member accounts
 - **Pages** and **Posts** content types with SEO metadata and cover media. Services are
   a type of page.
 - **Media library** on object storage with public image URLs
@@ -69,7 +69,7 @@ pnpm build                          # production build
 pnpm start                          # run the built worker locally
 ```
 
-Invitation emails go through Resend: set `RESEND_API_KEY` in a local `.dev.vars` file
+Inquiry notification emails go through Resend: set `RESEND_API_KEY` in a local `.dev.vars` file
 (see `.dev.vars.example`) and as a production secret (`wrangler secret put`).
 `RESEND_FROM` is a worker var in `wrangler.jsonc`.
 
